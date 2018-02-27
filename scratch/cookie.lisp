@@ -4,7 +4,7 @@
 
 (defun cookie (hypos &key (name "") (values nil))
   (let ((ni (create-distribution 'cookie :name name :values values)))
-    (loop :for h :in hypos :do (set-value ni h 1))
+    (loop :for h :in hypos :do (assign ni h 1))
     (normalize ni)
     ni))
 

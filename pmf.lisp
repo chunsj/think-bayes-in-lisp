@@ -109,7 +109,7 @@
 (defmethod add ((pmf pmf) (o number))
   (let ((ni (make-instance 'pmf)))
     (do-attributes pmf (lambda (v1 p1)
-                         (set-value pmf (+ v1 o) p1)))
+                         (assign pmf (+ v1 o) p1)))
     ni))
 
 (defmethod add ((pmf pmf) (o distribution))
@@ -122,7 +122,7 @@
 (defmethod subtract ((pmf pmf) (o number))
   (let ((ni (make-instance 'pmf)))
     (do-attributes pmf (lambda (v1 p1)
-                         (set-value pmf (- v1 o) p1)))
+                         (assign pmf (- v1 o) p1)))
     ni))
 
 (defmethod subtract ((pmf pmf) (o distribution))
