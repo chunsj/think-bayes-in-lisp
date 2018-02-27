@@ -19,6 +19,11 @@
 (defgeneric exponentiated (distribution &key max))
 (defgeneric assign(distribution v &optional y))
 (defgeneric increase (distribution v &optional term))
+
+(defgeneric add (distribution other))
+(defgeneric subtract (distribution other))
+(defgeneric multiply (distribution v factor))
+
 (defgeneric variable-values (distribution))
 (defgeneric variable-pairs (distribution))
 (defgeneric remove-value (distribution v))
@@ -26,10 +31,6 @@
 (defgeneric do-attributes (distribution function))
 (defgeneric attribute-total (distribution))
 (defgeneric attribute-maximum (distribution))
-
-(defgeneric add (distribution other))
-(defgeneric subtract (distribution other))
-(defgeneric multiply (distribution v factor))
 
 (defgeneric make-histogram-from (data &key name))
 (defgeneric make-pmf-from (data &key name))
