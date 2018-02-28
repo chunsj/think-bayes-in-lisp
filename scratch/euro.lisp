@@ -61,7 +61,7 @@
   (update suite (cons 140 110))
   (tb.plot::gnuplot-pmf suite))
 
-;; todo
+;; todo - should i need to use gsll?
 (let ((beta (beta)))
   (update beta (cons 140 110))
   (xmean beta))
