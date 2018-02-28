@@ -1,6 +1,6 @@
 (in-package :think-bayes)
 
-(defclass train (suite) ())
+(defclass train (pmf) ())
 
 (defmethod likelihood ((self train) data hypo)
   (if (< hypo data)
@@ -9,18 +9,18 @@
 
 (defun collect-integers (n) (loop :for i :from 1 :to n :collect i))
 
-(let ((suite (suite 'train (collect-integers 1000))))
+(let ((suite (pmf :class 'train :hypotheses (collect-integers 1000))))
   (update suite 60)
   (xmean suite))
 
-(let ((suite (suite 'train (collect-integers 1000))))
+(let ((suite (pmf :class 'train :hypotheses (collect-integers 1000))))
   (update suite 60)
-  (gnuplot-distribution suite))
+  (gnuplot-pmf suite))
 
 ;; with different priors
-(let ((s1 (suite 'train (collect-integers 500)))
-      (s2 (suite 'train (collect-integers 1000)))
-      (s3 (suite 'train (collect-integers 2000))))
+(let ((s1 (pmf :class 'train :hypotheses (collect-integers 500)))
+      (s2 (pmf :class 'train :hypotheses (collect-integers 1000)))
+      (s3 (pmf :class 'train :hypotheses (collect-integers 2000))))
   (loop :for data :in '(60 30 90)
         :do (progn (update s1 data)
                    (update s2 data)
@@ -29,14 +29,14 @@
 
 ;; power law
 (defun train2 (hypos &key (alpha 1.0))
-  (let ((self (distribution 'train)))
-    (loop :for h :in hypos :do (setx self h (expt h (- alpha))))
+  (let ((self (pmf :class 'train)))
+    (loop :for h :in hypos :do (assign self h (expt h (- alpha))))
     (normalize self)
     self))
 
 (let ((suite (train2 (collect-integers 1000))))
   (update suite 60)
-  (gnuplot-distribution suite))
+  (gnuplot-pmf suite))
 
 (let ((s1 (train2 (collect-integers 500)))
       (s2 (train2 (collect-integers 1000)))

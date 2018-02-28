@@ -2,16 +2,10 @@
 
 (defclass cookie (pmf) ())
 
-(defun cookie (hypos &key (name "") (values nil))
-  (let ((ni (distribution 'cookie :name name :values values)))
-    (loop :for h :in hypos :do (assign ni h 1))
-    (normalize ni)
-    ni))
-
 (defmethod update ((cookie cookie) data)
   (loop :for h :in (xs cookie)
         :for like = (likelihood cookie data h)
-        :do (<*> cookie h like))
+        :do (mult cookie h like))
   (normalize cookie)
   cookie)
 
@@ -21,10 +15,10 @@
          (mix ($ mixes hypothesis)))
     ($ mix data)))
 
-(let ((pmf (cookie '("Bowl 1" "Bowl 2"))))
+(let ((pmf (pmf :class 'cookie :hypotheses '("Bowl 1" "Bowl 2"))))
   (update pmf :vanilla)
   pmf)
 
-(let ((pmf (cookie '("Bowl 1" "Bowl 2"))))
+(let ((pmf (pmf :class 'cookie :hypotheses '("Bowl 1" "Bowl 2"))))
   (loop :for data :in '(:vanilla :chocolate :vanilla) :do (update pmf data))
   pmf)

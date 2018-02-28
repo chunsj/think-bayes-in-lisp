@@ -30,7 +30,7 @@
               (loop :for xy :in xys :do (format T "~&~{~A~^ ~}" (list (car xy) (cdr xy)))))
             :with '(linespoints pointtype 7 pointsize 0.4)))))
 
-(defun gnuplot-distribution (d) (gnuplot-xys (xys d)))
+(defun gnuplot-pmf (pmf) (gnuplot-xys (xps pmf)))
 
 (defun gnuplot-lines (vs)
   (when (and vs (> (length vs) 1))

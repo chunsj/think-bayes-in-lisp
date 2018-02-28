@@ -5,7 +5,7 @@
   (let ((hypoa #{:bag1 mix94 :bag2 mix96})
         (hypob #{:bag1 mix96 :bag2 mix94}))
     (let ((hypos #{:a hypoa :b hypob}))
-      (defclass m-and-m (suite)
+      (defclass m-and-m (pmf)
         ((hypotheses :initform hypos :reader hypotheses))))))
 
 (defmethod likelihood ((self m-and-m) data hypo)
@@ -15,7 +15,7 @@
          (like ($ mix color)))
     like))
 
-(let ((suite (suite 'm-and-m '(:a :b))))
+(let ((suite (pmf :class 'm-and-m :hypotheses '(:a :b))))
   (update suite '(:bag1 :yellow))
   (update suite '(:bag2 :green))
   suite)

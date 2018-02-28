@@ -9,8 +9,6 @@
                "clmath"
                "eazy-gnuplot")
   :components ((:file "package")
-               (:file "distribution")
                (:file "pmf")
-               (:file "suite")
-               (:file "beta")
+               (:file "cdf")
                (:file "support")))

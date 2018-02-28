@@ -1,84 +1,107 @@
+
 (in-package :think-bayes)
 
-(defclass pmf (distribution) ())
+(defgeneric update (pmf evidence))
+(defgeneric likelihood (pmf evidence hypothesis))
 
-(defmethod print-object ((pmf pmf) stream) (call-next-method))
+(defgeneric assign (pmf x &optional p))
+(defgeneric increase (pmf x &optional term))
 
-(defclass cdf ()
-  ((name :initform "" :accessor name)
-   (xs :initform nil :accessor xs)
-   (ps :initform nil :accessor ps)))
+(defgeneric normalize (pmf &optional fraction))
 
-(defmethod print-object ((cdf cdf) stream)
-  (if (> (length (name cdf)) 0)
-      (format stream "~A [~A:~A]" (name cdf) (length (xs cdf)) (length (ps cdf)))
-      (format stream "[~A:~A]" (length (xs cdf)) (length (ps cdf)))))
+(defgeneric xs (pmf))
+(defgeneric ps (pmf))
+(defgeneric xps (pmf))
+(defgeneric x (pmf p))
+(defgeneric p (pmf x &optional default))
 
-(defun pmf (&key (name "") (values nil))
-  (distribution 'pmf :name name :values values))
+(defgeneric mult (pmf x factor))
 
-(defun cdf (&key (name "") xs ps)
-  (let ((ni (make-instance 'cdf)))
-    (setf (name ni) name)
-    (when xs (setf (xs ni) xs))
-    (when ps (setf (ps ni) ps))
-    ni))
+(defgeneric xmean (pmf))
+(defgeneric percentile (pmf percentage))
+(defgeneric credible-interval (pmf &optional percentage))
 
-(defmethod normalize ((pmf pmf) &optional (fraction 1))
-  (when (logarithmizedp pmf)
-    (error "pmf is under a log transform"))
-  (let ((total (ysum pmf)))
-    (if (= total 0.0)
-        (error "total probability is zero")
-        (let ((f (/ fraction total)))
-          (doxys pmf (lambda (x v) (setf ($ pmf x) (* f v))))
-          total))))
+(defgeneric maximum-likelihood (pmf))
 
-(defmethod to-cdf ((pmf pmf) &key (name "") &allow-other-keys)
+(defgeneric to-cdf (pmf &key &allow-other-keys))
+(defgeneric to-pmf (cdf &key &allow-other-keys))
+
+(defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
+
+(defmethod $ ((pmf pmf) x &rest default) ($ (xpmap pmf) x (car default)))
+
+(defmethod (setf $) (p (pmf pmf) x &rest others)
+  (declare (ignore others))
+  (setf ($ (xpmap pmf) x) p))
+
+(defmethod $count ((pmf pmf)) ($count (xpmap pmf)))
+
+(defmethod print-object ((pmf pmf) stream)
+  (format stream "#<PMF ~A>" (xpmap pmf)))
+
+(defun pmf (&key (class 'pmf) (hypotheses nil))
+  (let ((instance (make-instance class)))
+    (when hypotheses
+      (loop :for h :in hypotheses :do (increase instance h 1))
+      (normalize instance))
+    instance))
+
+(defmethod update ((pmf pmf) evidence)
+  (loop :for h :in (xs pmf)
+        :for l = (likelihood pmf evidence h)
+        :do (mult pmf h l))
+  (normalize pmf)
+  pmf)
+
+(defmethod assign ((pmf pmf) x &optional (p 0)) (setf ($ pmf x) p))
+
+(defmethod increase ((pmf pmf) x &optional (term 1)) (setf ($ pmf x) (+ term ($ pmf x 0))))
+
+(defmethod normalize ((pmf pmf) &optional (fraction 1.0))
+  (let ((total (reduce #'+ (mapcar #'cdr (xps pmf)))))
+    (when (not (zerop total))
+      (let ((f (/ fraction total)))
+        (maphash (lambda (x p) (setf ($ pmf x) (* f p))) (xpmap pmf))))))
+
+(defmethod xs ((pmf pmf)) (hash-table-keys (xpmap pmf)))
+
+(defmethod ps ((pmf pmf)) (loop :for x :in (xs pmf) :collect ($ pmf x)))
+
+(defmethod xps ((pmf pmf))
+  (let ((xps nil))
+    (maphash (lambda (x p) (push (cons x p) xps)) (xpmap pmf))
+    (reverse xps)))
+
+(defmethod p ((pmf pmf) x &optional default) ($ pmf x default))
+
+(defmethod mult ((pmf pmf) x factor) (setf ($ pmf x) (* factor ($ pmf x 0))))
+
+(defmethod xmean ((pmf pmf)) (loop :for xp :in (xps pmf) :sum (* (car xp) (cdr xp))))
+
+(defmethod percentile ((pmf pmf) percentage)
+  (let ((p (/ percentage 100.0))
+        (total 0))
+    (loop :for xp :in (xps pmf)
+          :for val = (car xp)
+          :for prop = (cdr xp)
+          :do (incf total prop)
+          :when (>= total p)
+            :return val)))
+
+(defmethod maximum-likelihood ((pmf pmf))
+  (car (reduce (lambda (xp1 xp2) (if (> (cdr xp1) (cdr xp2)) xp1 xp2)) (xps pmf))))
+
+(defmethod credible-interval ((pmf pmf) &optional (percentage 90))
+  (ci (to-cdf pmf) percentage))
+
+(defmethod to-cdf ((pmf pmf) &key &allow-other-keys)
   (let ((runsum 0.0)
         (xs nil)
         (cs nil))
-    (doxys pmf (lambda (v c)
-                 (incf runsum c)
-                 (push v xs)
-                 (push runsum cs)))
-    (cdf :name name :xs (reverse xs) :ps (mapcar (lambda (c) (/ c runsum)) (reverse cs)))))
-
-(defun bisect (xs x &key (low 0) (high nil))
-  (if (< low 0)
-      (error "low must be non-negative")
-      (let ((l low)
-            (h (or high ($count xs))))
-        (loop :while (< l h)
-              :for m = (floor (/ (+ l h) 2))
-              :do (if (< x ($ xs m))
-                      (setf h m)
-                      (setf l (1+ m))))
-        l)))
-
-(defmethod y ((cdf cdf) x &optional default)
-  (declare (ignore default))
-  (if (< x ($0 (xs cdf)))
-      0.0
-      (let ((index (bisect (xs cdf) x)))
-        ($ (xs cdf) (1- index)))))
-
-(defmethod x ((cdf cdf) p)
-  (when (or (< p 0) (> p 1))
-    (error "invalid probability ~A" p))
-  (cond ((eq p 0) ($0 (xs cdf)))
-        ((eq p 1) ($last (xs cdf)))
-        (t (let ((index (bisect (ps cdf) p)))
-             (if (= p ($ (ps cdf) (1- index)))
-                 ($ (xs cdf) (1- index))
-                 ($ (xs cdf) index))))))
-
-(defmethod percentile ((cdf cdf) percentage)
-  (x cdf (/ percentage 100.0)))
-
-(defmethod credible-interval ((cdf cdf) &optional (percentage 90))
-  (let ((p (/ (- 1 (/ percentage 100.0)) 2)))
-    (cons (x cdf p) (x cdf (- 1 p)))))
-
-(defmethod xys ((self cdf))
-  (mapcar (lambda (x p) (cons x p)) (xs self) (ps self)))
+    (maphash (lambda (x c)
+               (incf runsum c)
+               (push x xs)
+               (push runsum cs))
+             (xpmap pmf))
+    (cdf :xs (reverse xs)
+         :ps (mapcar (lambda (c) (/ c runsum)) (reverse cs)))))
