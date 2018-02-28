@@ -3,8 +3,8 @@
 (defclass euro (pmf) ())
 
 (defmethod likelihood ((self euro) data hypo)
-  (let ((x (/ hypo 100.0)))
-    (if (eq data :h) x (- 1.0 x))))
+  (let ((x (/ hypo 100D0)))
+    (if (eq data :h) x (- 1D0 x))))
 
 (let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 1 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)

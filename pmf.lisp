@@ -42,7 +42,7 @@
 (defun pmf (&key (class 'pmf) (hypotheses nil))
   (let ((instance (make-instance class)))
     (when hypotheses
-      (loop :for h :in hypotheses :do (increase instance h 1))
+      (loop :for h :in hypotheses :do (increase instance h 1D0))
       (normalize instance))
     instance))
 
@@ -55,19 +55,16 @@
   (update-evidence pmf evidence)
   (normalize pmf))
 
-;; (defmethod update-all ((pmf pmf) evidences)
-;;   (loop :for ev :in evidences
-;;         :do (update-evidence pmf ev))
-;;   (normalize pmf))
-
 (defmethod update-all ((pmf pmf) evidences)
-  (loop :for ev :in evidences :do (update pmf ev)))
+  (loop :for ev :in evidences
+        :do (update-evidence pmf ev))
+  (normalize pmf))
 
-(defmethod assign ((pmf pmf) x &optional (p 0)) (setf ($ pmf x) p))
+(defmethod assign ((pmf pmf) x &optional (p 0D0)) (setf ($ pmf x) p))
 
-(defmethod increase ((pmf pmf) x &optional (term 1)) (setf ($ pmf x) (+ term ($ pmf x 0))))
+(defmethod increase ((pmf pmf) x &optional (term 1D0)) (setf ($ pmf x) (+ term ($ pmf x 0D0))))
 
-(defmethod normalize ((pmf pmf) &optional (fraction 1.0))
+(defmethod normalize ((pmf pmf) &optional (fraction 1D0))
   (let ((total (reduce #'+ (mapcar #'cdr (xps pmf)))))
     (when (not (zerop total))
       (let ((f (/ fraction total)))
@@ -84,13 +81,13 @@
 
 (defmethod p ((pmf pmf) x &optional default) ($ pmf x default))
 
-(defmethod mult ((pmf pmf) x factor) (setf ($ pmf x) (* factor ($ pmf x 0))))
+(defmethod mult ((pmf pmf) x factor) (setf ($ pmf x) (* factor ($ pmf x 0D0))))
 
 (defmethod xmean ((pmf pmf)) (loop :for xp :in (xps pmf) :sum (* (car xp) (cdr xp))))
 
 (defmethod percentile ((pmf pmf) percentage)
-  (let ((p (/ percentage 100.0))
-        (total 0))
+  (let ((p (/ percentage 100D0))
+        (total 0D0))
     (loop :for xp :in (xps pmf)
           :for val = (car xp)
           :for prop = (cdr xp)
@@ -105,7 +102,7 @@
   (credible-interval (to-cdf pmf) percentage))
 
 (defmethod to-cdf ((pmf pmf) &key &allow-other-keys)
-  (let ((runsum 0.0)
+  (let ((runsum 0D0)
         (xs nil)
         (cs nil))
     (maphash (lambda (x c)

@@ -33,7 +33,9 @@
       (gp :unset :key)
       (gp :set :xrange (list (format nil "-1:~A" (1+ (length xys)))))
       (plot (lambda ()
-              (loop :for xy :in xys :do (format T "~&~{~A~^ ~}" (list (car xy) (cdr xy)))))
+              (loop :for xy :in xys
+                    :do (format T "~&~{~A~^ ~}" (list (car xy)
+                                                      (coerce (cdr xy) 'single-float)))))
             :with '(linespoints pointtype 7 pointsize 0.4)))))
 
 (defun gnuplot-pmf (pmf) (gnuplot-xys (tb::xps pmf)))
