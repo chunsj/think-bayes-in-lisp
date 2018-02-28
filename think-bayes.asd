@@ -5,8 +5,10 @@
   :maintainer "Sungjin Chun <chunsj@gmail.com>"
   :description "support code for the book think bayes"
   :long-description "read description"
-  :depends-on ("mu")
+  :depends-on ("mu"
+               "eazy-gnuplot")
   :components ((:file "package")
                (:file "distribution")
                (:file "pmf")
-               (:file "suite")))
+               (:file "suite")
+               (:file "support")))

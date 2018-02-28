@@ -13,7 +13,10 @@
 
 (defmethod $count ((d distribution)) ($count (attrs d)))
 
-(defmethod print-object ((d distribution) stream) (format stream "~A" (attrs d)))
+(defmethod print-object ((d distribution) stream)
+  (if (> (length (name d)) 0)
+      (format stream "<~A>:~A" (name d) (attrs d))
+      (format stream "~A" (attrs d))))
 
 (defgeneric assign(distribution v &optional y))
 (defgeneric increase (distribution v &optional term))
@@ -23,6 +26,9 @@
 (defgeneric xs (distribution))
 (defgeneric xys (distribution))
 
+(defgeneric x (distribution p))
+(defgeneric y (distribution x &optional default))
+
 (defgeneric setx (distribution x &optional y))
 (defgeneric remx (distribution x))
 
@@ -30,6 +36,13 @@
 (defgeneric ymax (distribution))
 
 (defgeneric <*> (distribution v factor))
+
+(defgeneric xmean (distribution))
+
+(defgeneric percentile (distribution percentage))
+
+(defgeneric to-cdf (distribution &key name))
+(defgeneric to-pmf (distribution &key name))
 
 (defgeneric initialize (distribution values))
 
@@ -72,6 +85,10 @@
 (defmethod xys ((d distribution))
   (loop :for v :in (xs d) :collect (cons v ($ d v))))
 
+(defmethod x ((d distribution) p))
+
+(defmethod y ((d distribution) x &optional (default 0)) ($ d x default))
+
 (defmethod setx ((d distribution) x &optional (y 0)) (setf ($ d x) y))
 
 (defmethod remx ((d distribution) x) (remhash x (attrs d)))
@@ -86,3 +103,16 @@
 (defmethod <*> ((d distribution) v factor)
   (setf ($ d v) (* factor ($ d v 0)))
   d)
+
+(defmethod xmean ((d distribution))
+  (loop :for xy :in (xys d) :sum (* (car xy) (cdr xy))))
+
+(defmethod percentile ((d distribution) percentage)
+  (let ((p (/ percentage 100.0))
+        (total 0))
+    (loop :for xy :in (xys d)
+          :for val = (car xy)
+          :for prop = (cdr xy)
+          :do (incf total prop)
+          :when (>= total p)
+            :return val)))

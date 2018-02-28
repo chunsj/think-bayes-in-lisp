@@ -4,8 +4,25 @@
 
 (defmethod print-object ((pmf pmf) stream) (call-next-method))
 
+(defclass cdf ()
+  ((name :initform "" :accessor name)
+   (xs :initform nil :accessor xs)
+   (ps :initform nil :accessor ps)))
+
+(defmethod print-object ((cdf cdf) stream)
+  (if (> (length (name cdf)) 0)
+      (format stream "~A [~A:~A]" (name cdf) (length (xs cdf)) (length (ps cdf)))
+      (format stream "[~A:~A]" (length (xs cdf)) (length (ps cdf)))))
+
 (defun pmf (&key (name "") (values nil))
   (distribution 'pmf :name name :values values))
+
+(defun cdf (&key (name "") xs ps)
+  (let ((ni (make-instance 'cdf)))
+    (setf (name ni) name)
+    (when xs (setf (xs ni) xs))
+    (when ps (setf (ps ni) ps))
+    ni))
 
 (defmethod normalize ((pmf pmf) &optional (fraction 1.0))
   (when (logarithmizedp pmf)
@@ -16,3 +33,47 @@
         (let ((f (/ (float fraction) total)))
           (doxys pmf (lambda (x v) (setf ($ pmf x) (* f v))))
           total))))
+
+(defmethod to-cdf ((pmf pmf) &key (name ""))
+  (let ((runsum 0.0)
+        (xs nil)
+        (cs nil))
+    (doxys pmf (lambda (v c)
+                 (incf runsum c)
+                 (push v xs)
+                 (push runsum cs)))
+    (cdf :name name :xs (reverse xs) :ps (mapcar (lambda (c) (/ c runsum)) (reverse cs)))))
+
+(defun bisect (xs x &key (low 0) (high nil))
+  (if (< low 0)
+      (error "low must be non-negative")
+      (let ((l low)
+            (h (or high ($count xs))))
+        (loop :while (< l h)
+              :for m = (floor (/ (+ l h) 2))
+              :do (if (< x ($ xs m))
+                      (setf h m)
+                      (setf l (1+ m))))
+        l)))
+
+(defmethod y ((cdf cdf) x &optional default)
+  (declare (ignore default))
+  (if (< x ($0 (xs cdf)))
+      0.0
+      (let ((index (bisect (xs cdf) x)))
+        ($ (xs cdf) (1- index)))))
+
+(defmethod x ((cdf cdf) p)
+  (when (or (< p 0) (> p 1))
+    (error "invalid probability ~A" p))
+  (cond ((eq p 0) ($0 (xs cdf)))
+        ((eq p 1) ($last (xs cdf)))
+        (t (let ((index (bisect (ps cdf) p)))
+             (if (= p ($ (ps cdf) (1- index)))
+                 ($ (xs cdf) (1- index))
+                 ($ (xs cdf) index))))))
+
+(defmethod percentile ((cdf cdf) percentage)
+  (x cdf (/ percentage 100.0)))
+
+(floor (/ (+ 125 250) 2))
