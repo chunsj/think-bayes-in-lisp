@@ -34,7 +34,7 @@
           (doxys pmf (lambda (x v) (setf ($ pmf x) (* f v))))
           total))))
 
-(defmethod to-cdf ((pmf pmf) &key (name ""))
+(defmethod to-cdf ((pmf pmf) &key (name "") &allow-other-keys)
   (let ((runsum 0.0)
         (xs nil)
         (cs nil))
@@ -79,3 +79,6 @@
 (defmethod credible-interval ((cdf cdf) &optional (percentage 90))
   (let ((p (/ (- 1 (/ percentage 100.0)) 2)))
     (cons (x cdf p) (x cdf (- 1 p)))))
+
+(defmethod xys ((self cdf))
+  (mapcar (lambda (x p) (cons x p)) (xs self) (ps self)))

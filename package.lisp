@@ -2,4 +2,5 @@
   (:nicknames :tb)
   (:use #:common-lisp
         #:mu
-        #:eazy-gnuplot))
+        #:eazy-gnuplot)
+  (:import-from #:clmath))

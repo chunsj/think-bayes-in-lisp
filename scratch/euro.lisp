@@ -48,3 +48,12 @@
 (let ((suite (triangle-prior)))
   (update suite (cons 140 110))
   (gnuplot-distribution suite))
+
+(let ((beta (beta)))
+  (update beta (cons 140 110))
+  (xmean beta))
+
+(let ((beta (beta)))
+  (update beta (cons 140 110))
+  (let ((pmf (to-pmf beta)))
+    (gnuplot-lines (mapcar #'cdr (xys pmf)))))

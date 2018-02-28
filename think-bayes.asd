@@ -6,9 +6,11 @@
   :description "support code for the book think bayes"
   :long-description "read description"
   :depends-on ("mu"
+               "clmath"
                "eazy-gnuplot")
   :components ((:file "package")
                (:file "distribution")
                (:file "pmf")
                (:file "suite")
+               (:file "beta")
                (:file "support")))

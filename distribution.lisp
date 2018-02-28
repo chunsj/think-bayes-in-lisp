@@ -41,8 +41,8 @@
 
 (defgeneric percentile (distribution percentage))
 
-(defgeneric to-cdf (distribution &key name))
-(defgeneric to-pmf (distribution &key name))
+(defgeneric to-cdf (distribution &key name &allow-other-keys))
+(defgeneric to-pmf (distribution &key name &allow-other-keys))
 
 (defgeneric maximum-likelihood (distribution))
 
