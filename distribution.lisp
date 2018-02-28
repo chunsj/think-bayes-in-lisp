@@ -23,6 +23,9 @@
 (defgeneric xs (distribution))
 (defgeneric xys (distribution))
 
+(defgeneric setx (distribution x &optional y))
+(defgeneric remx (distribution x))
+
 (defgeneric ysum (distribution))
 (defgeneric ymax (distribution))
 
@@ -68,6 +71,10 @@
 
 (defmethod xys ((d distribution))
   (loop :for v :in (xs d) :collect (cons v ($ d v))))
+
+(defmethod setx ((d distribution) x &optional (y 0)) (setf ($ d x) y))
+
+(defmethod remx ((d distribution) x) (remhash x (attrs d)))
 
 (defun doxys (d function)
   (maphash function (attrs d))

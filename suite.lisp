@@ -7,7 +7,7 @@
 
 (defun suite (cls hypotheses &key (name "") (values nil))
   (let ((ni (distribution cls :name name :values values)))
-    (loop :for h :in hypotheses :do (setf ($ ni h) 1))
+    (loop :for h :in hypotheses :do (setx ni h 1))
     (normalize ni)
     ni))
 
