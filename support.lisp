@@ -1,4 +1,10 @@
-(in-package :think-bayes)
+(defpackage :think-bayes.gnuplot
+  (:nicknames :tb.plot)
+  (:use #:common-lisp
+        #:eazy-gnuplot
+        #:think-bayes))
+
+(in-package :think-bayes.gnuplot)
 
 (defparameter *xt-gnuplot-debug* nil)
 (defparameter *xt-gnuplot-emacs-file* "/tmp/emacs-chart.svg")
@@ -30,7 +36,7 @@
               (loop :for xy :in xys :do (format T "~&~{~A~^ ~}" (list (car xy) (cdr xy)))))
             :with '(linespoints pointtype 7 pointsize 0.4)))))
 
-(defun gnuplot-pmf (pmf) (gnuplot-xys (xps pmf)))
+(defun gnuplot-pmf (pmf) (gnuplot-xys (tb::xps pmf)))
 
 (defun gnuplot-lines (vs)
   (when (and vs (> (length vs) 1))

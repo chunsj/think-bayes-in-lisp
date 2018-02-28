@@ -1,7 +1,7 @@
-
 (in-package :think-bayes)
 
 (defgeneric update (pmf evidence))
+(defgeneric update-all (pmf evidences))
 (defgeneric likelihood (pmf evidence hypothesis))
 
 (defgeneric assign (pmf x &optional p))
@@ -46,12 +46,22 @@
       (normalize instance))
     instance))
 
-(defmethod update ((pmf pmf) evidence)
+(defun update-evidence (pmf evidence)
   (loop :for h :in (xs pmf)
         :for l = (likelihood pmf evidence h)
-        :do (mult pmf h l))
-  (normalize pmf)
-  pmf)
+        :do (mult pmf h l)))
+
+(defmethod update ((pmf pmf) evidence)
+  (update-evidence pmf evidence)
+  (normalize pmf))
+
+;; (defmethod update-all ((pmf pmf) evidences)
+;;   (loop :for ev :in evidences
+;;         :do (update-evidence pmf ev))
+;;   (normalize pmf))
+
+(defmethod update-all ((pmf pmf) evidences)
+  (loop :for ev :in evidences :do (update pmf ev)))
 
 (defmethod assign ((pmf pmf) x &optional (p 0)) (setf ($ pmf x) p))
 
@@ -92,7 +102,7 @@
   (car (reduce (lambda (xp1 xp2) (if (> (cdr xp1) (cdr xp2)) xp1 xp2)) (xps pmf))))
 
 (defmethod credible-interval ((pmf pmf) &optional (percentage 90))
-  (ci (to-cdf pmf) percentage))
+  (credible-interval (to-cdf pmf) percentage))
 
 (defmethod to-cdf ((pmf pmf) &key &allow-other-keys)
   (let ((runsum 0.0)
