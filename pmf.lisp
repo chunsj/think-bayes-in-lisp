@@ -24,13 +24,13 @@
     (when ps (setf (ps ni) ps))
     ni))
 
-(defmethod normalize ((pmf pmf) &optional (fraction 1.0))
+(defmethod normalize ((pmf pmf) &optional (fraction 1))
   (when (logarithmizedp pmf)
     (error "pmf is under a log transform"))
   (let ((total (ysum pmf)))
     (if (= total 0.0)
         (error "total probability is zero")
-        (let ((f (/ (float fraction) total)))
+        (let ((f (/ fraction total)))
           (doxys pmf (lambda (x v) (setf ($ pmf x) (* f v))))
           total))))
 
@@ -76,4 +76,6 @@
 (defmethod percentile ((cdf cdf) percentage)
   (x cdf (/ percentage 100.0)))
 
-(floor (/ (+ 125 250) 2))
+(defmethod credible-interval ((cdf cdf) &optional (percentage 90))
+  (let ((p (/ (- 1 (/ percentage 100.0)) 2)))
+    (cons (x cdf p) (x cdf (- 1 p)))))

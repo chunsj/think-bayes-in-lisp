@@ -35,7 +35,7 @@
 (defgeneric ysum (distribution))
 (defgeneric ymax (distribution))
 
-(defgeneric <*> (distribution v factor))
+(defgeneric <*> (distribution x factor))
 
 (defgeneric xmean (distribution))
 
@@ -43,6 +43,10 @@
 
 (defgeneric to-cdf (distribution &key name))
 (defgeneric to-pmf (distribution &key name))
+
+(defgeneric maximum-likelihood (distribution))
+
+(defgeneric credible-interval (distribution &optional percentage))
 
 (defgeneric initialize (distribution values))
 
@@ -100,8 +104,8 @@
 (defmethod ysum ((d distribution)) (reduce #'+ (mapcar #'cdr (xys d))))
 (defmethod ymax ((d distribution)) (apply #'max (mapcar #'cdr (xys d))))
 
-(defmethod <*> ((d distribution) v factor)
-  (setf ($ d v) (* factor ($ d v 0)))
+(defmethod <*> ((d distribution) x factor)
+  (setf ($ d x) (* factor ($ d x 0)))
   d)
 
 (defmethod xmean ((d distribution))
@@ -116,3 +120,10 @@
           :do (incf total prop)
           :when (>= total p)
             :return val)))
+
+(defmethod maximum-likelihood ((d distribution))
+  (car (reduce (lambda (iv rv) (if (> (cdr iv) (cdr rv)) iv rv)) (xys d))))
+
+(defmethod credible-interval ((d distribution) &optional (percentage 90))
+  (let ((cdf (to-cdf d)))
+    (credible-interval cdf percentage)))
