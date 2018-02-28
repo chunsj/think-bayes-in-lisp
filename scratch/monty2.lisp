@@ -7,6 +7,6 @@
         ((eq hypothesis :a) 0.5)
         (t 1.0)))
 
-(let ((suite (create-suite 'monty2 '(:a :b :c))))
+(let ((suite (suite 'monty2 '(:a :b :c))))
   (update suite :b)
   suite)

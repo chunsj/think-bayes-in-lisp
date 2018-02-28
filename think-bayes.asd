@@ -7,7 +7,6 @@
   :long-description "read description"
   :depends-on ("mu")
   :components ((:file "package")
-               (:file "base")
-               (:file "histogram")
+               (:file "distribution")
                (:file "pmf")
                (:file "suite")))

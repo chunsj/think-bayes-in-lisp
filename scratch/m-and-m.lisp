@@ -15,7 +15,7 @@
          (like ($ mix color)))
     like))
 
-(let ((suite (create-suite 'm-and-m '(:a :b))))
+(let ((suite (suite 'm-and-m '(:a :b))))
   (update suite '(:bag1 :yellow))
   (update suite '(:bag2 :green))
   suite)

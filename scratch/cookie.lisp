@@ -3,15 +3,15 @@
 (defclass cookie (pmf) ())
 
 (defun cookie (hypos &key (name "") (values nil))
-  (let ((ni (create-distribution 'cookie :name name :values values)))
+  (let ((ni (distribution 'cookie :name name :values values)))
     (loop :for h :in hypos :do (assign ni h 1))
     (normalize ni)
     ni))
 
 (defmethod update ((cookie cookie) data)
-  (loop :for h :in (variable-values cookie)
+  (loop :for h :in (xs cookie)
         :for like = (likelihood cookie data h)
-        :do (multiply cookie h like))
+        :do (<*> cookie h like))
   (normalize cookie)
   cookie)
 

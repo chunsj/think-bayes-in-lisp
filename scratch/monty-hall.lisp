@@ -3,15 +3,15 @@
 (defclass monty (pmf) ())
 
 (defun monty (hypos &key (name "") (values nil))
-  (let ((ni (create-distribution 'monty :name name :values values)))
+  (let ((ni (distribution 'monty :name name :values values)))
     (loop :for h :in hypos :do (assign ni h 1))
     (normalize ni)
     ni))
 
 (defmethod update ((pmf monty) data)
-  (loop :for h :in (variable-values pmf)
+  (loop :for h :in (xs pmf)
         :for like = (likelihood pmf data h)
-        :do (multiply pmf h like))
+        :do (<*> pmf h like))
   (normalize pmf))
 
 (defmethod likelihood ((pmf monty) data h)
