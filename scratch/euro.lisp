@@ -50,17 +50,18 @@
 
 ;; faster one but overflows XXX
 (defmethod likelihood ((self euro) data hypo)
-  (let ((x (/ hypo 100.0))
+  (let ((x (/ hypo 100D0))
         (heads (car data))
         (tails (cdr data)))
-    (cond ((= x 0) 0)
-          ((= x 1) 0)
+    (cond ((= x 0) 0D0)
+          ((= x 1) 0D0)
           (t (* (expt x heads) (expt (- 1 x) tails))))))
 
 (let ((suite (triangle-prior)))
   (update suite (cons 140 110))
   (tb.plot::gnuplot-pmf suite))
 
+;; todo
 (let ((beta (beta)))
   (update beta (cons 140 110))
   (xmean beta))
