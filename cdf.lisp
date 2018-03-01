@@ -50,3 +50,5 @@
 (defmethod credible-interval ((cdf cdf) &optional (percentage 90))
   (let ((p (/ (- 1D0 (/ percentage 100D0)) 2)))
     (cons (x cdf p) (x cdf (- 1D0 p)))))
+
+(defun plot-cdf (cdf) (plot-pmf cdf))

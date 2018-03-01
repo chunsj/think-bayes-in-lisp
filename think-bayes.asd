@@ -10,4 +10,5 @@
                "gsll")
   :components ((:file "package")
                (:file "pmf")
-               (:file "cdf")))
+               (:file "cdf")
+               (:file "beta")))
