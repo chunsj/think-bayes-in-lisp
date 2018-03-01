@@ -7,8 +7,7 @@
   :long-description "read description"
   :depends-on ("mu"
                "clmath"
-               "eazy-gnuplot")
+               "mplot")
   :components ((:file "package")
                (:file "pmf")
-               (:file "cdf")
-               (:file "support")))
+               (:file "cdf")))
