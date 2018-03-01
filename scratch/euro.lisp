@@ -10,13 +10,13 @@
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (loop :for data :in dataset :do (update suite data))
-  (tb.plot::gnuplot-pmf suite))
+  (plot-pmf suite))
 
 (let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 1 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (update-all suite dataset)
-  (tb.plot::gnuplot-pmf suite))
+  (plot-pmf suite))
 
 (let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 0 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
@@ -34,21 +34,20 @@
     (normalize suite)
     suite))
 
-(tb.plot::gnuplot-pmf (triangle-prior))
+(plot-pmf (triangle-prior))
 
 (let ((suite (triangle-prior))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (loop :for data :in dataset :do (update suite data))
-  (tb.plot::gnuplot-pmf suite))
+  (plot-pmf suite))
 
 (let ((suite (triangle-prior))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (update-all suite dataset)
-  (tb.plot::gnuplot-pmf suite))
+  (plot-pmf suite))
 
-;; faster one but overflows XXX
 (defmethod likelihood ((self euro) data hypo)
   (let ((x (/ hypo 100D0))
         (heads (car data))
@@ -59,14 +58,12 @@
 
 (let ((suite (triangle-prior)))
   (update suite (cons 140 110))
-  (tb.plot::gnuplot-pmf suite))
+  (plot-pmf suite))
 
-;; todo - should i need to use gsll?
 (let ((beta (beta)))
   (update beta (cons 140 110))
   (xmean beta))
 
 (let ((beta (beta)))
   (update beta (cons 140 110))
-  (let ((pmf (to-pmf beta)))
-    (gnuplot-lines (mapcar #'cdr (xys pmf)))))
+  (plot-beta beta))

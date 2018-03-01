@@ -112,3 +112,5 @@
              (xpmap pmf))
     (cdf :xs (reverse xs)
          :ps (mapcar (lambda (c) (/ c runsum)) (reverse cs)))))
+
+(defun plot-pmf (pmf) (plot-xys (xps pmf)))

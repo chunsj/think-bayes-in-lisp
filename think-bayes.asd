@@ -6,8 +6,8 @@
   :description "support code for the book think bayes"
   :long-description "read description"
   :depends-on ("mu"
-               "clmath"
-               "mplot")
+               "mplot"
+               "gsll")
   :components ((:file "package")
                (:file "pmf")
                (:file "cdf")))
