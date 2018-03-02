@@ -11,4 +11,5 @@
   :components ((:file "package")
                (:file "pmf")
                (:file "cdf")
-               (:file "beta")))
+               (:file "beta")
+               (:file "pdf")))

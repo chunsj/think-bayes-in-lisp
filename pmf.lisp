@@ -133,7 +133,7 @@
           (sort xps (lambda (a b) (funcall lesspfn (car a) (car b))))
           xps))))
 
-(defun plot-pmf (pmf) (plot-boxes (sortxps (xps pmf))))
+(defun plot-pmf (pmf &key (xtics 20)) (plot-boxes (sortxps (xps pmf)) :xtics xtics))
 
 (defmethod rand ((pmf pmf))
   (let ((target (random 1D0))
