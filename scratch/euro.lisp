@@ -6,7 +6,7 @@
   (let ((x (/ hypo 100D0)))
     (if (eq data :h) x (- 1D0 x))))
 
-(let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 1 :to 100 :collect i)))
+(let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 0 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (loop :for data :in dataset :do (update suite data))

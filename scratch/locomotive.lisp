@@ -15,7 +15,7 @@
 
 (let ((suite (pmf :class 'train :hypotheses (collect-integers 1000))))
   (update suite 60)
-  (gnuplot-pmf suite))
+  (plot-pmf suite))
 
 ;; with different priors
 (let ((s1 (pmf :class 'train :hypotheses (collect-integers 500)))
@@ -36,7 +36,7 @@
 
 (let ((suite (train2 (collect-integers 1000))))
   (update suite 60)
-  (gnuplot-pmf suite))
+  (plot-pmf suite))
 
 (let ((s1 (train2 (collect-integers 500)))
       (s2 (train2 (collect-integers 1000)))
