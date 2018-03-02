@@ -52,3 +52,25 @@
     (cons (x cdf p) (x cdf (- 1D0 p)))))
 
 (defun plot-cdf (cdf) (plot-pmf cdf))
+
+(defmethod rand ((cdf cdf)) (x cdf (random 1D0)))
+
+(defmethod sample ((cdf cdf) n) (loop :for i :from 0 :below n :collect (rand cdf)))
+
+(defmethod maximum ((cdf cdf) k)
+  (let ((instance (make-instance 'cdf)))
+    (setf (xs instance) (copy-list (xs cdf)))
+    (setf (ps instance) (mapcar (lambda (p) (expt p k)) (ps cdf)))
+    instance))
+
+(defmethod to-cdf ((cdf cdf) &key &allow-other-keys) cdf)
+
+(defmethod to-pmf ((cdf cdf) &key  &allow-other-keys)
+  (let ((pmf (make-instance 'pmf))
+        (prev 0D0))
+    (loop :for xp :in (xps cdf)
+          :for val = (car xp)
+          :for prob = (cdr xp)
+          :do (increase pmf val (- prob prev))
+          :do (setf prev prob))
+    pmf))

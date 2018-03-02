@@ -1,0 +1,126 @@
+(in-package :think-bayes)
+
+(defclass die (pmf) ())
+
+(defun die (sides)
+  (let ((instance (make-instance 'die)))
+    (loop :for i :from 1 :to sides :do (assign instance i 1))
+    (normalize instance)
+    instance))
+
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  dice)
+
+(defun random-sum (dists)
+  (reduce #'+ (mapcar (lambda (dist) (rand dist)) dists)))
+
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  (random-sum dice))
+
+(defun sample-sum (dists n)
+  (let ((pmf (pmf)))
+    (loop :for i :from 0 :below n :do (increase pmf (random-sum dists)))
+    (normalize pmf)
+    pmf))
+
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  (sample-sum dice 100))
+
+;; approximation
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  (plot-pmf (sample-sum dice 1000)))
+
+;; exact
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  (plot-pmf (reduce #'add dice)))
+
+(defun random-max (dists)
+  (apply #'max (mapcar #'rand dists)))
+
+(let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
+  (random-max dice))
+
+(defun sample-max (dists n)
+  (let ((pmf (pmf)))
+    (loop :for i :from 0 :below n :do (increase pmf (random-max dists)))
+    (normalize pmf)
+    pmf))
+
+;; inefficient
+(defun pmf-max (pmf1 pmf2)
+  (let ((res (make-instance 'pmf)))
+    (loop :for vp1 :in (xps pmf1)
+          :for v1 = (car vp1)
+          :for p1 = (cdr vp1)
+          :do (loop :for vp2 :in (xps pmf2)
+                    :for v2 = (car vp2)
+                    :for p2 = (cdr vp2)
+                    :do (increase res (max v1 v2) (* p1 p2))))
+    res))
+
+(let* ((dice (loop :for i :from 0 :below 3 :collect (die 6)))
+       (three-exact (reduce #'add dice)))
+  (plot-pmf (to-pmf (maximum three-exact 6))))
+
+(let ((d6 (die 6))
+      (d8 (die 8))
+      (mix (pmf)))
+  (loop :for die :in (list d6 d8)
+        :do (loop :for xp :in (xps die)
+                  :for outcome = (car xp)
+                  :for prob = (cdr xp)
+                  :do (increase mix outcome prob)))
+  (normalize mix)
+  mix)
+
+(let ((d6 (die 6))
+      (d8 (die 8))
+      (mix (pmf)))
+  (loop :for die :in (list d6 d8)
+        :do (loop :for xp :in (xps die)
+                  :for outcome = (car xp)
+                  :for prob = (cdr xp)
+                  :do (increase mix outcome prob)))
+  (normalize mix)
+  (plot-pmf mix))
+
+(let ((pmf-dice (pmf)))
+  (assign pmf-dice (die 4) 5)
+  (assign pmf-dice (die 6) 4)
+  (assign pmf-dice (die 8) 3)
+  (assign pmf-dice (die 12) 2)
+  (assign pmf-dice (die 20) 1)
+  (normalize pmf-dice)
+  pmf-dice)
+
+(let ((pmf-dice (pmf)))
+  (assign pmf-dice (die 4) 5)
+  (assign pmf-dice (die 6) 4)
+  (assign pmf-dice (die 8) 3)
+  (assign pmf-dice (die 12) 2)
+  (assign pmf-dice (die 20) 1)
+  (normalize pmf-dice)
+  (plot-pmf pmf-dice))
+
+(defun pmf-dice ()
+  (let ((pmf-dice (pmf)))
+    (assign pmf-dice (die 4) 5)
+    (assign pmf-dice (die 6) 4)
+    (assign pmf-dice (die 8) 3)
+    (assign pmf-dice (die 12) 2)
+    (assign pmf-dice (die 20) 1)
+    (normalize pmf-dice)
+    pmf-dice))
+
+(let ((pmf-dice (pmf-dice))
+      (mix (pmf)))
+  (loop :for die-weight :in (xps pmf-dice)
+        :for die = (car die-weight)
+        :for weight = (cdr die-weight)
+        :do (loop :for outcome-prob :in (xps die)
+                  :for outcome = (car outcome-prob)
+                  :for prob = (cdr outcome-prob)
+                  :do (increase mix outcome (* weight prob))))
+  (plot-pmf mix))
+
+(plot-pmf (mixture (pmf-dice)))

@@ -67,3 +67,5 @@
 (let ((beta (beta)))
   (update beta (cons 140 110))
   (plot-beta beta))
+
+(plot-cdf (to-cdf (beta :alpha 14 :beta 10)))
