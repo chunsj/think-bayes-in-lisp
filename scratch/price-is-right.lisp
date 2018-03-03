@@ -81,10 +81,9 @@
 
 (defgeneric make-beliefs (player guess))
 (defmethod make-beliefs ((player player) guess)
-  (let ((pmf (to-pmf (pdf-price player) :xs (price-xs player))))
-    (setf (player-prior player) (price pmf player))
-    (setf (player-posterior player) (price pmf player))
-    (update (player-posterior player) guess)))
+  (setf (player-prior player) (price (to-pmf (pdf-price player) :xs (price-xs player)) player))
+  (setf (player-posterior player) (price (to-pmf (pdf-price player) :xs (price-xs player)) player))
+  (update (player-posterior player) guess))
 
 (let ((player (player ($ *showcase2011* :showcase1) ($ *showcase2011* :difference1))))
   (make-beliefs player 20000)
