@@ -8,6 +8,10 @@
     (normalize pmf)
     pmf))
 
+(defmethod plot ((pdf pdf) &key xs &allow-other-keys)
+  (when xs
+    (plot (to-pmf pdf :xs xs))))
+
 (defclass gaussian (pdf)
   ((mu :initform 0D0 :accessor mu)
    (sigma :initform 1D0 :accessor sigma)))
@@ -33,6 +37,17 @@
       (* (/ 1D0 (* n h))
          (reduce #'+ (mapcar (lambda (v) (gsll:gaussian-pdf v 1D0))
                              (funcall cnvfn x)))))))
+
+(defun linspace (l h n)
+  (let* ((n (max 3 n))
+         (s (/ (- h l) (coerce (1- n) 'double-float))))
+    (append (loop :for i :from l :below (- h s) :by s :collect i) (list h))))
+
+(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 5) &allow-other-keys)
+  (let* ((mu (mu pdf))
+         (sigma (sigma pdf))
+         (ixs (or xs (linspace (- mu (* 4D0 sigma)) (+ mu (* 4D0 sigma)) (1- steps)))))
+    (plot (to-pmf pdf :xs ixs) :xtics xtics)))
 
 (defclass empirical (pdf)
   ((kde :initform nil :accessor kde)))

@@ -23,11 +23,6 @@
 (defparameter *showcase2012* (read-showcase-data2
                               "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2012.csv"))
 
-(defun linspace (l h n)
-  (let* ((n (max 3 n))
-         (s (/ (- h l) (coerce (1- n) 'double-float))))
-    (append (loop :for i :from l :below (- h s) :by s :collect i) (list h))))
-
 (-> (to-pmf (empirical ($ *showcase2011* :showcase1))
             :xs (linspace 0 75000 101))
     (plot-pmf :xtics 10))

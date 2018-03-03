@@ -32,6 +32,8 @@
 (defgeneric to-cdf (pmf &key &allow-other-keys))
 (defgeneric to-pmf (cdf &key &allow-other-keys))
 
+(defgeneric plot (pmf &key &allow-other-keys))
+
 (defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
 
 (defmethod $ ((pmf pmf) x &rest default) ($ (xpmap pmf) x (car default)))
@@ -133,7 +135,8 @@
           (sort xps (lambda (a b) (funcall lesspfn (car a) (car b))))
           xps))))
 
-(defun plot-pmf (pmf &key (xtics 20)) (plot-boxes (sortxps (xps pmf)) :xtics xtics))
+(defmethod plot ((pmf pmf) &key (xtics 20) &allow-other-keys)
+  (plot-boxes (sortxps (xps pmf)) :xtics xtics))
 
 (defmethod rand ((pmf pmf))
   (let ((target (random 1D0))
