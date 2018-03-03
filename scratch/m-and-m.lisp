@@ -23,4 +23,4 @@
 (let ((suite (pmf :class 'm-and-m :hypotheses '(:a :b))))
   (update suite '(:bag1 :yellow))
   (update suite '(:bag2 :green))
-  (plot-pmf suite))
+  (plot suite))

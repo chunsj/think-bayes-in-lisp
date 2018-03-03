@@ -13,4 +13,4 @@
 
 (let ((suite (pmf :class 'monty2 :hypotheses '(:a :b :c))))
   (update suite :b)
-  (plot-pmf suite))
+  (plot suite))

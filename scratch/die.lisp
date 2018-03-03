@@ -28,11 +28,11 @@
 
 ;; approximation
 (let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
-  (plot-pmf (sample-sum dice 1000)))
+  (plot (sample-sum dice 1000)))
 
 ;; exact
 (let ((dice (loop :for i :from 0 :below 3 :collect (die 6))))
-  (plot-pmf (reduce #'add dice)))
+  (plot (reduce #'add dice)))
 
 (defun random-max (dists)
   (apply #'max (mapcar #'rand dists)))
@@ -60,7 +60,7 @@
 
 (let* ((dice (loop :for i :from 0 :below 3 :collect (die 6)))
        (three-exact (reduce #'add dice)))
-  (plot-pmf (to-pmf (maximum three-exact 6))))
+  (plot (to-pmf (maximum three-exact 6))))
 
 (let ((d6 (die 6))
       (d8 (die 8))
@@ -82,7 +82,7 @@
                   :for prob = (cdr xp)
                   :do (increase mix outcome prob)))
   (normalize mix)
-  (plot-pmf mix))
+  (plot mix))
 
 (let ((pmf-dice (pmf)))
   (assign pmf-dice (die 4) 5)
@@ -100,7 +100,7 @@
   (assign pmf-dice (die 12) 2)
   (assign pmf-dice (die 20) 1)
   (normalize pmf-dice)
-  (plot-pmf pmf-dice))
+  (plot pmf-dice))
 
 (defun pmf-dice ()
   (let ((pmf-dice (pmf)))
@@ -121,6 +121,6 @@
                   :for outcome = (car outcome-prob)
                   :for prob = (cdr outcome-prob)
                   :do (increase mix outcome (* weight prob))))
-  (plot-pmf mix))
+  (plot mix))
 
-(plot-pmf (mixture (pmf-dice)))
+(plot (mixture (pmf-dice)))

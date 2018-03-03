@@ -25,4 +25,4 @@
 
 (let ((pmf (pmf :class 'cookie :hypotheses '("Bowl 1" "Bowl 2"))))
   (update pmf :vanilla)
-  (plot-pmf pmf))
+  (plot pmf))

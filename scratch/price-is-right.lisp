@@ -25,8 +25,8 @@
 
 (-> (to-pmf (empirical ($ *showcase2011* :showcase1))
             :xs (linspace 0 75000 101))
-    (plot-pmf :xtics 10))
+    (plot :xtics 10))
 
 (-> (to-pmf (empirical ($ *showcase2012* :showcase1))
             :xs (linspace 0 75000 101))
-    (plot-pmf :xtics 10))
+    (plot :xtics 10))

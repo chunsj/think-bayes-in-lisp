@@ -10,13 +10,13 @@
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (loop :for data :in dataset :do (update suite data))
-  (plot-pmf suite))
+  (plot suite))
 
 (let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 1 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (update-all suite dataset)
-  (plot-pmf suite))
+  (plot suite))
 
 (let ((suite (pmf :class 'euro :hypotheses (loop :for i :from 0 :to 100 :collect i)))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
@@ -34,19 +34,19 @@
     (normalize suite)
     suite))
 
-(plot-pmf (triangle-prior))
+(plot (triangle-prior))
 
 (let ((suite (triangle-prior))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (loop :for data :in dataset :do (update suite data))
-  (plot-pmf suite))
+  (plot suite))
 
 (let ((suite (triangle-prior))
       (dataset (append (loop :for i :from 0 :below 140 :collect :h)
                        (loop :for i :from 0 :below 110 :collect :t))))
   (update-all suite dataset)
-  (plot-pmf suite))
+  (plot suite))
 
 (defmethod likelihood ((self euro) data hypo)
   (let ((x (/ hypo 100D0))
@@ -58,7 +58,7 @@
 
 (let ((suite (triangle-prior)))
   (update suite (cons 140 110))
-  (plot-pmf suite))
+  (plot suite))
 
 (let ((beta (beta)))
   (update beta (cons 140 110))
@@ -66,6 +66,6 @@
 
 (let ((beta (beta)))
   (update beta (cons 140 110))
-  (plot-beta beta))
+  (plot beta))
 
-(plot-cdf (to-cdf (beta :alpha 14 :beta 10)))
+(plot (to-cdf (beta :alpha 14 :beta 10)))
