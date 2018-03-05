@@ -181,3 +181,13 @@
                     :for p = (cdr xp)
                     :do (increase mix x (* w p))))
     mix))
+
+(defun mean (xs) (/ (reduce #'+ xs) (length xs)))
+(defun variance (xs)
+  (let* ((n (length xs))
+         (m (/ (reduce #'+ xs) n)))
+    (/ (reduce #'+ (mapcar (lambda (x)
+                             (expt (abs (- x m)) 2))
+                           xs))
+       n)))
+(defun sd (xs) (sqrt (variance xs)))

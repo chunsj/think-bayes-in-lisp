@@ -61,14 +61,10 @@
    (v :initform nil :accessor xvariance)))
 
 (defun empirical (samples &key h)
-  (let ((instance (make-instance 'empirical))
-        (n (length samples)))
+  (let ((instance (make-instance 'empirical)))
     (setf (kde instance) (gaussian-kde-fn samples :h h))
-    (setf (xmean instance) (/ (reduce #'+ samples) n))
-    (setf (xvariance instance) (/ (reduce #'+ (mapcar (lambda (x)
-                                                        (expt (abs (- x (xmean instance))) 2))
-                                                      samples))
-                                  n))
+    (setf (xmean instance) (mean samples))
+    (setf (xvariance instance) (variance samples))
     instance))
 
 (defmethod p ((pdf empirical) x &optional default)

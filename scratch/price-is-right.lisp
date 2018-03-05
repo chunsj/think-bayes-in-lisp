@@ -23,22 +23,42 @@
 (defparameter *showcase2012* (read-showcase-data2
                               "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2012.csv"))
 
+(defparameter *max-price* (max (apply #'max ($ *showcase2011* :showcase1))
+                               (apply #'max ($ *showcase2011* :showcase2))
+                               (apply #'max ($ *showcase2012* :showcase1))
+                               (apply #'max ($ *showcase2012* :showcase2))))
+
+(defparameter *maxprc* 75000)
+(defparameter *prices* (linspace 0 *maxprc* 101))
+(defparameter *diffs* (linspace (* -1 *maxprc*) *maxprc* 101))
+
+;; actual prices distribution for player1
 (-> (to-pmf (empirical ($ *showcase2011* :showcase1))
-            :xs (linspace 0 75000 101))
+            :xs *prices*)
     (plot :xtics 10))
 
+;; actual prices distribution for player2
 (-> (to-pmf (empirical ($ *showcase2011* :showcase2))
-            :xs (linspace 0 75000 101))
+            :xs *prices*)
     (plot :xtics 10))
 
+;; bids distribution for player1
+(-> (to-pmf (empirical ($ *showcase2011* :bid1))
+            :xs *prices*)
+    (plot :xtics 10))
+
+;; bids distribution for player2
+(-> (to-pmf (empirical ($ *showcase2011* :bid2))
+            :xs *prices*)
+    (plot :xtics 10))
+
+;; actual price - bid
 (-> (to-pmf (empirical ($ *showcase2011* :difference1))
-            :xs (linspace -50000 50000 101))
-    (to-cdf)
+            :xs *diffs*)
     (plot :xtics 10))
 
 (-> (to-pmf (empirical ($ *showcase2011* :difference2))
-            :xs (linspace -50000 50000 101))
-    (to-cdf)
+            :xs *diffs*)
     (plot :xtics 10))
 
 (defclass player ()
