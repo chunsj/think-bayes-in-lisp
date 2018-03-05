@@ -27,7 +27,7 @@
             :xs (linspace 0 75000 101))
     (plot :xtics 10))
 
-(-> (to-pmf (empirical ($ *showcase2012* :showcase1))
+(-> (to-pmf (empirical ($ *showcase2011* :showcase2))
             :xs (linspace 0 75000 101))
     (plot :xtics 10))
 
@@ -88,3 +88,63 @@
 (let ((player (player ($ *showcase2011* :showcase1) ($ *showcase2011* :difference1))))
   (make-beliefs player 20000)
   (plot (player-posterior player) :xtics 10))
+
+(defclass gain-calculator ()
+  ((player :initform nil :accessor gain-player)
+   (opponent :initform nil :accessor gain-opponent)))
+
+(defun gain-calculator (player opponent)
+  (let ((instance (make-instance 'gain-calculator)))
+    (setf (gain-player instance) player
+          (gain-opponent instance) opponent)
+    instance))
+
+(defgeneric expected-gain (calculator bid))
+(defgeneric expected-gains (calculator &key low high n))
+(defgeneric gain (calculator bid price))
+(defgeneric prob-win (calculator diff))
+
+(defmethod expected-gains ((calc gain-calculator) &key (low 0) (high 75000) (n 101))
+  (let ((bids (linspace low high n)))
+    (mapcar (lambda (bid) (cons bid (expected-gain calc bid))) bids)))
+
+(defmethod expected-gain ((calc gain-calculator) bid)
+  (let ((suite (player-posterior (gain-player calc)))
+        (total 0D0))
+    (loop :for xp :in (xps suite)
+          :for price = (car xp)
+          :for prob = (cdr xp)
+          :for gain = (gain calc bid price)
+          :do (incf total (* prob gain)))
+    total))
+
+(defmethod gain ((calc gain-calculator) bid price)
+  (cond ((> bid price) 0)
+        (t (let* ((diff (- price bid))
+                  (prob (prob-win calc diff)))
+             (if (<= diff 250)
+                 (* 2D0 price prob)
+                 (* price prob))))))
+
+(defgeneric prob-over-bid (player))
+(defgeneric prob-worse-than (player diff))
+
+(defmethod prob-win ((calc gain-calculator) diff)
+  (+ (prob-over-bid (gain-opponent calc))
+     (prob-worse-than (gain-opponent calc) diff)))
+
+(defmethod prob-over-bid ((player player)) (p (cdf-diff player) -1))
+(defmethod prob-worse-than ((player player) diff) (- 1D0 (p (cdf-diff player) diff)))
+
+(defgeneric optimal-bid (player guess opponent))
+
+(defmethod optimal-bid ((player player) guess opponent)
+  (make-beliefs player guess)
+  (let* ((calc (gain-calculator player opponent))
+         (bids-gains (expected-gains calc))
+         (bid-gain (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) bids-gains)))
+    bid-gain))
+
+(let ((player (player ($ *showcase2011* :showcase1) ($ *showcase2011* :difference1)))
+      (opponent (player ($ *showcase2011* :showcase2) ($ *showcase2011* :difference2))))
+  (optimal-bid player 20000 opponent))

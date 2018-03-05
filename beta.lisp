@@ -13,9 +13,13 @@
 (defmethod print-object ((beta beta) stream)
   (format stream "#<BETA ~A:~A>" (a beta) (b beta)))
 
-(defmethod update ((beta beta) evidence)
-  (incf (a beta) (car evidence))
-  (incf (b beta) (cdr evidence)))
+(defmethod observe ((beta beta) evidence &key (multiplep nil))
+  (if multiplep
+      (loop :for ev :in evidence
+            :do (progn (incf (a beta) (car ev))
+                       (incf (b beta) (cdr ev))))
+      (progn (incf (a beta) (car evidence))
+             (incf (b beta) (cdr evidence)))))
 
 (defmethod xmean ((beta beta)) (/ (a beta) (+ (a beta) (b beta))))
 
