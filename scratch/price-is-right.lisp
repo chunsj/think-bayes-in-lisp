@@ -1,5 +1,7 @@
 (in-package :think-bayes)
 
+;; implementations are slightly different from the book, trying to be simpler ones
+
 (defun read-showcase-data (fname)
   (let ((lines (read-lines-from fname)))
     #{:showcase1 (mapcar #'parse-integer (cdr (split #\, ($3 lines))))
