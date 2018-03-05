@@ -296,3 +296,12 @@
   (let* ((c2 (gain-calc p2 p1))
          (gains (expected-gains c2)))
     (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) gains)))
+
+(-> (loop :for bid :in (linspace 15000 50000 36)
+          :for p1 = (player 1)
+          :for p2 = (player 2)
+          :do (make-beliefs p1 bid)
+          :do (make-beliefs p2 40000)
+          :collect (let ((c (gain-calc p1 p2)))
+                     (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) (expected-gains c))))
+    (plot-boxes :xtics 10))
