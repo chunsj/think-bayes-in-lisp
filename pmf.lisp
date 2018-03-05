@@ -6,6 +6,8 @@
 (defgeneric assign (pmf x &optional p))
 (defgeneric increase (pmf x &optional term))
 
+(defgeneric init (pmf &key &allow-other-keys))
+
 (defgeneric normalize (pmf &optional fraction))
 
 (defgeneric xs (pmf))
@@ -50,11 +52,14 @@
 (defmethod print-object ((pmf pmf) stream)
   (format stream "#<PMF ~A>" (xpmap pmf)))
 
+(defmethod init ((pmf pmf) &key hypotheses &allow-other-keys)
+  (when hypotheses
+    (loop :for h :in hypotheses :do (increase pmf h 1D0))
+    (normalize pmf)))
+
 (defun pmf (&key (class 'pmf) (hypotheses nil))
   (let ((instance (make-instance class)))
-    (when hypotheses
-      (loop :for h :in hypotheses :do (increase instance h 1D0))
-      (normalize instance))
+    (init instance :hypotheses hypotheses)
     instance))
 
 (defun observe-evidence (pmf evidence)
@@ -206,3 +211,6 @@
   (let ((instance (make-instance 'pmf)))
     (loop :for xp :in (xps pmf) :do (assign pmf (car x) (cdr p)))
     instance))
+
+(defun xrange (low high &optional (step-size 1))
+  (loop :for i :from low :below high :by step-size :collect i))
