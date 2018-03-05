@@ -22,149 +22,275 @@
                               "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2011.csv"))
 (defparameter *showcase2012* (read-showcase-data2
                               "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2012.csv"))
+(defparameter *showcase* #{:showcase1 (append ($ *showcase2011* :showcase1)
+                                       ($ *showcase2012* :showcase1))
+                           :showcase2 (append ($ *showcase2011* :showcase2)
+                                       ($ *showcase2012* :showcase2))
+                           :bid1 (append ($ *showcase2011* :bid1)
+                                  ($ *showcase2012* :bid1))
+                           :bid2 (append ($ *showcase2011* :bid2)
+                                  ($ *showcase2012* :bid2))
+                           :difference1 (append ($ *showcase2011* :difference1)
+                                         ($ *showcase2012* :difference1))
+                           :difference2 (append ($ *showcase2011* :difference2)
+                                         ($ *showcase2012* :difference2))})
 
-(defparameter *max-price* (max (apply #'max ($ *showcase2011* :showcase1))
-                               (apply #'max ($ *showcase2011* :showcase2))
-                               (apply #'max ($ *showcase2012* :showcase1))
-                               (apply #'max ($ *showcase2012* :showcase2))))
+(defparameter *max-price* (max (apply #'max ($ *showcase* :showcase1))
+                               (apply #'max ($ *showcase* :showcase2))))
 
 (defparameter *maxprc* 75000)
 (defparameter *prices* (linspace 0 *maxprc* 101))
 (defparameter *diffs* (linspace (* -1 *maxprc*) *maxprc* 101))
 
 ;; actual prices distribution for player1
-(-> (to-pmf (empirical ($ *showcase2011* :showcase1))
+(-> (to-pmf (empirical ($ *showcase* :showcase1))
             :xs *prices*)
     (plot :xtics 10))
 
 ;; actual prices distribution for player2
-(-> (to-pmf (empirical ($ *showcase2011* :showcase2))
+(-> (to-pmf (empirical ($ *showcase* :showcase2))
             :xs *prices*)
     (plot :xtics 10))
 
 ;; bids distribution for player1
-(-> (to-pmf (empirical ($ *showcase2011* :bid1))
+(-> (to-pmf (empirical ($ *showcase* :bid1))
             :xs *prices*)
     (plot :xtics 10))
 
 ;; bids distribution for player2
-(-> (to-pmf (empirical ($ *showcase2011* :bid2))
+(-> (to-pmf (empirical ($ *showcase* :bid2))
             :xs *prices*)
     (plot :xtics 10))
 
 ;; actual price - bid
-(-> (to-pmf (empirical ($ *showcase2011* :difference1))
+(-> (to-pmf (empirical ($ *showcase* :difference1))
             :xs *diffs*)
     (plot :xtics 10))
 
-(-> (to-pmf (empirical ($ *showcase2011* :difference2))
+(-> (to-pmf (empirical ($ *showcase* :difference2))
             :xs *diffs*)
     (plot :xtics 10))
 
-(defclass player ()
-  ((pdf-price :initform nil :accessor pdf-price)
-   (cdf-diff :initform nil :accessor cdf-diff)
-   (pdf-error :initform nil :accessor pdf-error)
-   (n :initform 101 :accessor player-steps)
-   (price-xs :initform (linspace 0 75000 101) :accessor price-xs)
-   (diff-xs :initform (linspace -50000 50000 101) :accessor diff-xs)
-   (prior :initform nil :accessor player-prior)
-   (posterior :initform nil :accessor player-posterior)))
+;; what to solve => if the actual price p is given what is the likelihood that the contestant's
+;; estimate would be guess g?
+;;
+;; error: price - guess
+;; diff = price - bid
+;;
+;; what is the likelihood tha the contestant's estimate is off by error e?
 
-(defun player (prices diffs)
-  (let ((instance (make-instance 'player))
-        (price-emp (empirical prices))
-        (diff-emp (empirical diffs)))
-    (setf (pdf-price instance) price-emp)
-    (setf (cdf-diff instance) (-> diff-emp
-                                  (to-pmf :xs (diff-xs instance))
-                                  (to-cdf)))
-    (setf (pdf-error instance) (gaussian :sigma (sqrt (xvariance diff-emp))))
+;; first contestant overbids ~25%
+(let ((pmf (to-pmf (empirical ($ *showcase* :difference1))
+                   :xs *diffs*)))
+  (loop :for x :in *diffs* :when (< x 0) :sum (p pmf x)))
+
+;; second contestant overbids ~28%
+(let ((pmf (to-pmf (empirical ($ *showcase* :difference2))
+                   :xs *diffs*)))
+  (loop :for x :in *diffs* :when (< x 0) :sum (p pmf x)))
+
+;; mean estimations
+(xmean (to-pmf (empirical ($ *showcase* :bid1)) :xs *prices*))
+(xmean (to-pmf (empirical ($ *showcase* :bid2)) :xs *prices*))
+
+;; assumption
+;; the distribution of error is gaussian with mean 0 and the same variance as diff
+
+(let ((cdf-diff (to-cdf (to-pmf (empirical ($ *showcase* :difference1)) :xs *diffs*))))
+  (plot cdf-diff :xtics 10))
+
+(let ((cdf-diff (to-cdf (to-pmf (empirical ($ *showcase* :difference2)) :xs *diffs*))))
+  (plot cdf-diff :xtics 10))
+
+;; assumed error distribution
+(let ((pdf-error (gaussian :sigma (sd ($ *showcase* :difference1)))))
+  (plot pdf-error))
+
+(let ((pdf-error (gaussian :sigma (sd ($ *showcase* :difference2)))))
+  (plot pdf-error))
+
+(defclass case-price (pmf)
+  ((cdf-diff :initform nil :accessor cdf-diff)
+   (pdf-error :initform nil :accessor pdf-error)))
+
+(defun case-price (showcases differences)
+  (let ((instance (make-instance 'case-price))
+        (pdf-price (empirical showcases)))
+    (setf (cdf-diff instance) (to-cdf (to-pmf (empirical differences) :xs *diffs*)))
+    (let ((pmf (to-pmf pdf-price :xs *prices*)))
+      (setf (xpmap instance) (xpmap pmf))
+      (setf (pdf-error instance) (gaussian :sigma (sd differences))))
     instance))
 
-(defgeneric error-density (player error))
-(defmethod error-density ((player player) error) (p (pdf-error player) error))
+(defun showcase1-price () (case-price ($ *showcase* :showcase1) ($ *showcase* :difference1)))
+(defun showcase2-price () (case-price ($ *showcase* :showcase2) ($ *showcase* :difference2)))
 
-(defclass price (pmf)
-  ((player :initform nil :accessor price-player)))
+(xmean (showcase1-price))
+(xmean (showcase2-price))
 
-(defun price (pmf player)
-  (let ((price (pmf :class 'price)))
-    (setf (xpmap price) (xpmap pmf))
-    (setf (price-player price) player)
-    price))
-
-(defmethod likelihood ((price price) evidence hypo)
-  (let ((prc hypo)
+(defmethod likelihood ((pmf case-price) evidence hypothesis)
+  (let ((price hypothesis)
         (guess evidence))
-    (error-density (price-player price) (- prc guess))))
+    (p (pdf-error pmf) (- price guess))))
+
+;; price distribution changes according to error, case 1
+(plot (showcase1-price) :xtics 10)
+(let ((pmf (showcase1-price)))
+  (observe pmf 20000)
+  (plot pmf :xtics 10))
+
+;; case 2
+(plot (showcase2-price) :xtics 10)
+(let ((pmf (showcase2-price)))
+  (observe pmf 20000)
+  (plot pmf :xtics 10))
+
+(defclass player () ((pmf-price :initform nil :accessor pmf-price)))
+
+(defun player (showcase-number)
+  (let ((instance (make-instance 'player)))
+    (cond ((eq showcase-number 1) (setf (pmf-price instance) (showcase1-price)))
+          ((eq showcase-number 2) (setf (pmf-price instance) (showcase2-price))))
+    instance))
+
+(defmethod pdf-error ((player player)) (pdf-error (pmf-price player)))
+(defmethod cdf-diff ((player player)) (cdf-diff (pmf-price player)))
 
 (defgeneric make-beliefs (player guess))
-(defmethod make-beliefs ((player player) guess)
-  (setf (player-prior player) (price (to-pmf (pdf-price player) :xs (price-xs player)) player))
-  (setf (player-posterior player) (price (to-pmf (pdf-price player) :xs (price-xs player)) player))
-  (update (player-posterior player) guess))
+(defmethod make-beliefs ((player player) guess) (observe (pmf-price player) guess))
 
-(let ((player (player ($ *showcase2011* :showcase1) ($ *showcase2011* :difference1))))
-  (make-beliefs player 20000)
-  (plot (player-posterior player) :xtics 10))
+(defgeneric overbid-probability (player))
+(defgeneric worse-probability (player diff))
 
-(defclass gain-calculator ()
+(defmethod overbid-probability ((player player)) (p (cdf-diff player) -1))
+(defmethod worse-probability ((player player) diff) (- 1D0 (p (cdf-diff player) diff)))
+
+;; original price distribution
+(let ((player1 (player 1))) (plot (pmf-price player1) :xtics 10))
+
+(let ((player1 (player 1))) (maximum-likelihood (pmf-price player1)))
+;; after guess, the distribution is left shifted (20000 < 27750)
+(let ((player1 (player 1)))
+  (make-beliefs player1 20000)
+  (plot (pmf-price player1) :xtics 10))
+;; if you think/guess the price is 20000, then you should believe it it 24000
+(let ((player1 (player 1)))
+  (make-beliefs player1 20000)
+  (maximum-likelihood (pmf-price player1)))
+
+(defclass gain-calc ()
   ((player :initform nil :accessor gain-player)
    (opponent :initform nil :accessor gain-opponent)))
 
-(defun gain-calculator (player opponent)
-  (let ((instance (make-instance 'gain-calculator)))
-    (setf (gain-player instance) player
-          (gain-opponent instance) opponent)
+(defun gain-calc (p o)
+  (let ((instance (make-instance 'gain-calc)))
+    (setf (gain-player instance) p
+          (gain-opponent instance) o)
     instance))
 
-(defgeneric expected-gain (calculator bid))
-(defgeneric expected-gains (calculator &key low high n))
-(defgeneric gain (calculator bid price))
-(defgeneric prob-win (calculator diff))
+(defmethod pmf-price ((calc gain-calc)) (pmf-price (gain-player calc)))
 
-(defmethod expected-gains ((calc gain-calculator) &key (low 0) (high 75000) (n 101))
-  (let ((bids (linspace low high n)))
-    (mapcar (lambda (bid) (cons bid (expected-gain calc bid))) bids)))
+($first *prices*)
+($last *prices*)
 
-(defmethod expected-gain ((calc gain-calculator) bid)
-  (let ((suite (player-posterior (gain-player calc)))
-        (total 0D0))
-    (loop :for xp :in (xps suite)
-          :for price = (car xp)
-          :for prob = (cdr xp)
-          :for gain = (gain calc bid price)
-          :do (incf total (* prob gain)))
-    total))
+(defgeneric win-probability (calc diff))
+(defmethod win-probability ((calc gain-calc) diff)
+  (+ (overbid-probability (gain-opponent calc))
+     (worse-probability (gain-opponent calc) diff)))
 
-(defmethod gain ((calc gain-calculator) bid price)
-  (cond ((> bid price) 0)
+(defgeneric gain (calc bid price))
+(defmethod gain ((calc gain-calc) bid price)
+  (cond ((> bid price) 0D0)
         (t (let* ((diff (- price bid))
-                  (prob (prob-win calc diff)))
-             (if (<= diff 250)
+                  (prob (win-probability calc diff)))
+             (if (<= diff 250D0)
                  (* 2D0 price prob)
                  (* price prob))))))
 
-(defgeneric prob-over-bid (player))
-(defgeneric prob-worse-than (player diff))
+(defgeneric expected-gain (calc bid))
+(defmethod expected-gain ((calc gain-calc) bid)
+  (let ((suite (pmf-price calc)))
+    (->> (mapcar (lambda (xp)
+                   (let ((price (car xp))
+                         (prob (cdr xp)))
+                     (* prob (gain calc bid price))))
+                 (xps suite))
+         (reduce #'+))))
 
-(defmethod prob-win ((calc gain-calculator) diff)
-  (+ (prob-over-bid (gain-opponent calc))
-     (prob-worse-than (gain-opponent calc) diff)))
-
-(defmethod prob-over-bid ((player player)) (p (cdf-diff player) -1))
-(defmethod prob-worse-than ((player player) diff) (- 1D0 (p (cdf-diff player) diff)))
+(defgeneric expected-gains (calc &key low high n))
+(defmethod expected-gains ((calc gain-calc) &key (low ($first *prices*))
+                                              (high ($last *prices*))
+                                              (n 101))
+  ;; returns a list of (bid . gain)
+  (mapcar (lambda (bid) (cons bid (expected-gain calc bid))) (linspace low high n)))
 
 (defgeneric optimal-bid (player guess opponent))
-
 (defmethod optimal-bid ((player player) guess opponent)
   (make-beliefs player guess)
-  (let* ((calc (gain-calculator player opponent))
-         (bids-gains (expected-gains calc))
-         (bid-gain (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) bids-gains)))
-    bid-gain))
+  (let ((calc (gain-calc player opponent)))
+    (->> (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) (expected-gains calc))
+         (car))))
 
-(let ((player (player ($ *showcase2011* :showcase1) ($ *showcase2011* :difference1)))
-      (opponent (player ($ *showcase2011* :showcase2) ($ *showcase2011* :difference2))))
-  (optimal-bid player 20000 opponent))
+;; prior mles
+(let ((p1 (player 1))
+      (p2 (player 2)))
+  #{:prior-mle1 (maximum-likelihood (pmf-price p1))
+    :mean1 (xmean (pmf-price p1))
+    :prior-mle2 (maximum-likelihood (pmf-price p2))
+    :mean2 (xmean (pmf-price p2))})
+
+;; after guessing
+(let ((p1 (player 1))
+      (p2 (player 2))
+      (g1 20000)
+      (g2 40000))
+  (make-beliefs p1 g1)
+  (make-beliefs p2 g2)
+  #{:prior-mle1 (maximum-likelihood (pmf-price p1))
+    :mean1 (xmean (pmf-price p1))
+    :prior-mle2 (maximum-likelihood (pmf-price p2))
+    :mean2 (xmean (pmf-price p2))})
+
+;; expected gains for player 1
+(let ((p1 (player 1))
+      (p2 (player 2))
+      (g1 20000)
+      (g2 40000))
+  (make-beliefs p1 g1)
+  (make-beliefs p2 g2)
+  (let* ((c1 (gain-calc p1 p2))
+         (gains (expected-gains c1)))
+    (plot-boxes gains :xtics 10)))
+
+;; optimal bid and expected gain for player 1
+(let ((p1 (player 1))
+      (p2 (player 2))
+      (g1 20000)
+      (g2 40000))
+  (make-beliefs p1 g1)
+  (make-beliefs p2 g2)
+  (let* ((c1 (gain-calc p1 p2))
+         (gains (expected-gains c1)))
+    (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) gains)))
+
+;; for player 2
+(let ((p1 (player 1))
+      (p2 (player 2))
+      (g1 20000)
+      (g2 40000))
+  (make-beliefs p1 g1)
+  (make-beliefs p2 g2)
+  (let* ((c2 (gain-calc p2 p1))
+         (gains (expected-gains c2)))
+    (plot-boxes gains :xtics 10)))
+
+;; for player 2
+(let ((p1 (player 1))
+      (p2 (player 2))
+      (g1 20000)
+      (g2 40000))
+  (make-beliefs p1 g1)
+  (make-beliefs p2 g2)
+  (let* ((c2 (gain-calc p2 p1))
+         (gains (expected-gains c2)))
+    (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) gains)))

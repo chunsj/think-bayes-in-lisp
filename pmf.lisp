@@ -18,6 +18,8 @@
 (defgeneric mult (pmf x factor))
 
 (defgeneric xmean (pmf))
+(defgeneric xvariance (pmf))
+(defgeneric xsd (pmf))
 (defgeneric percentile (pmf percentage))
 (defgeneric credible-interval (pmf &optional percentage))
 
@@ -32,6 +34,8 @@
 (defgeneric to-pmf (cdf &key &allow-other-keys))
 
 (defgeneric plot (pmf &key &allow-other-keys))
+
+(defgeneric copy (pmf))
 
 (defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
 
@@ -89,6 +93,12 @@
 (defmethod mult ((pmf pmf) x factor) (setf ($ pmf x) (* factor ($ pmf x 0D0))))
 
 (defmethod xmean ((pmf pmf)) (loop :for xp :in (xps pmf) :sum (* (car xp) (cdr xp))))
+
+(defmethod xvariance ((pmf pmf))
+  (let ((mu (xmean pmf)))
+    (loop :for xp :in (xps pmf) :sum (* (cdr xp) (expt (- (car xp) mu) 2)))))
+
+(defmethod xsd ((pmf pmf)) (sqrt (xvariance pmf)))
 
 (defmethod percentile ((pmf pmf) percentage)
   (let ((p (/ percentage 100D0))
@@ -191,3 +201,8 @@
                            xs))
        n)))
 (defun sd (xs) (sqrt (variance xs)))
+
+(defmethod copy ((pmf pmf))
+  (let ((instance (make-instance 'pmf)))
+    (loop :for xp :in (xps pmf) :do (assign pmf (car x) (cdr p)))
+    instance))

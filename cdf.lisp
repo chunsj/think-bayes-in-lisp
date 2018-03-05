@@ -42,7 +42,7 @@
   (if (< x ($0 (xs cdf)))
       0D0
       (let ((index (bisect (xs cdf) x)))
-        ($ (xs cdf) (1- index)))))
+        ($ (ps cdf) (1- index)))))
 
 (defmethod percentile ((cdf cdf) percentage)
   (x cdf (/ percentage 100D0)))
@@ -66,7 +66,7 @@
 
 (defmethod to-cdf ((cdf cdf) &key &allow-other-keys) cdf)
 
-(defmethod to-pmf ((cdf cdf) &key  &allow-other-keys)
+(defmethod to-pmf ((cdf cdf) &key &allow-other-keys)
   (let ((pmf (make-instance 'pmf))
         (prev 0D0))
     (loop :for xp :in (xps cdf)
