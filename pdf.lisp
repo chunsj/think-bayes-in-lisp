@@ -55,6 +55,16 @@
     (normalize pmf)
     pmf))
 
+(defun gaussian-pmf (&key (mu 0D0) (sigma 1D0) (nsigma 4D0) (n 101))
+  (let* ((pmf (make-instance 'pmf))
+         (pdf (gaussian :mu mu :sigma sigma))
+         (low (- mu (* nsigma sigma)))
+         (high (+ mu (* nsigma sigma)))
+         (xs (linspace low high n)))
+    (loop :for x :in xs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
 (defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 5) &allow-other-keys)
   (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
