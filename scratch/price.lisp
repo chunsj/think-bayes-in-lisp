@@ -1,7 +1,22 @@
 (in-package :think-bayes)
 
+;; the game scenario suggests several questions
+;;
+;; 1. before seeing the prize, what prior beliefs should the contestant have about the price of
+;;    the showcase?
+;; 2. after seeing the prizes, how should the contestant update those beliefs?
+;; 3. based on the posterior distribution, what should the contestant bid?
+;;
+;; the third question demonstrates a common use of bayesian analysis: decision analysis.
+;; given a posterior distribution, we can choose the bid that maximizeds the contestant's
+;; expected return.
+;;
+;; this problem is inspired by an example in 'bayesian methods for hackers'. i should have try
+;; this one as well.
+
 ;; implementations are slightly different from the book, trying to be simpler ones
 
+;; preparation of previous shows data
 (defun read-showcase-data (fname)
   (let ((lines (read-lines-from fname)))
     #{:showcase1 (mapcar #'parse-integer (cdr (split #\, ($3 lines))))
@@ -44,79 +59,65 @@
 (defparameter *prices* (linspace 0 *maxprc* 101))
 (defparameter *diffs* (linspace (* -1 *maxprc*) *maxprc* 101))
 
-;; actual prices distribution for player1
-(-> (to-pmf (empirical ($ *showcase* :showcase1))
-            :xs *prices*)
-    (plot :xtics 10))
+;; distribution of prices for showcases
+(defparameter *showcase1-prices-pmf* (-> (empirical ($ *showcase* :showcase1))
+                                         (to-pmf :xs *prices*)))
+(defparameter *showcase2-prices-pmf* (-> (empirical ($ *showcase* :showcase2))
+                                         (to-pmf :xs *prices*)))
 
-;; actual prices distribution for player2
-(-> (to-pmf (empirical ($ *showcase* :showcase2))
-            :xs *prices*)
-    (plot :xtics 10))
+;; some statistics of price distributions
+(xmean *showcase1-prices-pmf*)
+(xmean *showcase2-prices-pmf*)
+(maximum-likelihood *showcase1-prices-pmf*)
+(maximum-likelihood *showcase2-prices-pmf*)
 
-;; bids distribution for player1
-(-> (to-pmf (empirical ($ *showcase* :bid1))
-            :xs *prices*)
-    (plot :xtics 10))
+;; shape of distributions
+(plot *showcase1-prices-pmf* :xtics 10)
+(plot *showcase2-prices-pmf* :xtics 10)
 
-;; bids distribution for player2
-(-> (to-pmf (empirical ($ *showcase* :bid2))
-            :xs *prices*)
-    (plot :xtics 10))
-
-;; actual price - bid
-(-> (to-pmf (empirical ($ *showcase* :difference1))
-            :xs *diffs*)
-    (plot :xtics 10))
-
-(-> (to-pmf (empirical ($ *showcase* :difference2))
-            :xs *diffs*)
-    (plot :xtics 10))
-
-;; what to solve => if the actual price p is given what is the likelihood that the contestant's
-;; estimate would be guess g?
+;; modeling the contestants
 ;;
-;; error: price - guess
-;; diff = price - bid
+;; 1. what data should we consider and how should we quantify it?
+;; 2. can we compute a likelihood function; that is, for each hypothetical value of
+;;    price, can we compute the conditional likelihood of the data?
 ;;
-;; what is the likelihood tha the contestant's estimate is off by error e?
+;; contestant: a price-guessing instrument with known error characteristics.
+;;             when the contestant sees the prizes, he or she guesses the price of each prize.
+;;
+;; question: if the actual price is p, what is the likelihood that the contestant's estimate
+;;           would be guess g?
+;;
+;; or: define error = price - guess
+;;     what is the likelihood that the contestant's estimate is off by error?
 
-;; first contestant overbids ~25%
-(let ((pmf (to-pmf (empirical ($ *showcase* :difference1))
-                   :xs *diffs*)))
-  (loop :for x :in *diffs* :when (< x 0) :sum (p pmf x)))
+;; from data we know difference between price and bid
+;; difference = price - bid
+(defparameter *difference1-pmf* (-> (empirical ($ *showcase* :difference1))
+                                    (to-pmf :xs *diffs*)))
+(defparameter *difference2-pmf* (-> (empirical ($ *showcase* :difference2))
+                                    (to-pmf :xs *diffs*)))
 
-;; second contestant overbids ~28%
-(let ((pmf (to-pmf (empirical ($ *showcase* :difference2))
-                   :xs *diffs*)))
-  (loop :for x :in *diffs* :when (< x 0) :sum (p pmf x)))
+;; by overbidding probability we can deduce that bids are biased, (1 - overbid probability) > 50%
+;; overbidding probability of contestant 1 ~ 23%
+(p (to-cdf *difference1-pmf*) -1D0)
+;; for contestant 2 ~ 26%
+(p (to-cdf *difference2-pmf*) -1D0)
 
-;; mean estimations
-(xmean (to-pmf (empirical ($ *showcase* :bid1)) :xs *prices*))
-(xmean (to-pmf (empirical ($ *showcase* :bid2)) :xs *prices*))
+;; finally, we can use this distribution to estimate the reliability of the contestans' guesses.
+;; because we don't actually know the contestant's guesses (we only know what they bid), this is
+;; a little tricky.
+;; so, we'll have to make some assumptions. specifically, the distribution of error is gaussian
+;; with mean 0 and the same variance as difference.
 
-;; assumption
-;; the distribution of error is gaussian with mean 0 and the same variance as diff
-
-(let ((cdf-diff (to-cdf (to-pmf (empirical ($ *showcase* :difference1)) :xs *diffs*))))
-  (plot cdf-diff :xtics 10))
-
-(let ((cdf-diff (to-cdf (to-pmf (empirical ($ *showcase* :difference2)) :xs *diffs*))))
-  (plot cdf-diff :xtics 10))
-
-;; assumed error distribution
-(let ((pdf-error (gaussian :sigma (sd ($ *showcase* :difference1)))))
-  (plot pdf-error))
-
-(let ((pdf-error (gaussian :sigma (sd ($ *showcase* :difference2)))))
-  (plot pdf-error))
-
-(defclass case-price (pmf)
+;; we can model the price guess.
+;; we can use the variance of difference to estimate the variance of error.
+;; guesstimation has price(self), difference(cdf-diff), and error(pdf-error) distributions
+(defclass guesstimation (pmf)
   ((cdf-diff :initform nil :accessor cdf-diff)
    (pdf-error :initform nil :accessor pdf-error)))
 
-(defun case-price (showcases differences)
-  (let ((instance (make-instance 'case-price))
+(defun guesstimation (showcases differences)
+  (let ((instance (make-instance 'guesstimation))
         (pdf-price (empirical showcases)))
     (setf (cdf-diff instance) (to-cdf (to-pmf (empirical differences) :xs *diffs*)))
     (let ((pmf (to-pmf pdf-price :xs *prices*)))
@@ -124,62 +125,53 @@
       (setf (pdf-error instance) (gaussian :sigma (sd differences))))
     instance))
 
-(defun showcase1-price () (case-price ($ *showcase* :showcase1) ($ *showcase* :difference1)))
-(defun showcase2-price () (case-price ($ *showcase* :showcase2) ($ *showcase* :difference2)))
+(defun showcase1-guess () (guesstimation ($ *showcase* :showcase1) ($ *showcase* :difference1)))
+(defun showcase2-guess () (guesstimation ($ *showcase* :showcase2) ($ *showcase* :difference2)))
 
-(xmean (showcase1-price))
-(xmean (showcase2-price))
-
-(defmethod likelihood ((pmf case-price) evidence hypothesis)
+;; we can update our guesstimation on price of showcase using contestant's best guess
+;; price: hypothesis
+;; evidence: guess of contentant
+(defmethod likelihood ((pmf guesstimation) evidence hypothesis)
   (let ((price hypothesis)
         (guess evidence))
+    ;; note that error = price - guess, we can compute the probability density of error
     (p (pdf-error pmf) (- price guess))))
 
-;; price distribution changes according to error, case 1
-(plot (showcase1-price) :xtics 10)
-(let ((pmf (showcase1-price)))
-  (observe pmf 20000)
-  (plot pmf :xtics 10))
-
-;; case 2
-(plot (showcase2-price) :xtics 10)
-(let ((pmf (showcase2-price)))
-  (observe pmf 20000)
-  (plot pmf :xtics 10))
-
+;; model of a contestant which has a price distribution (of guesstimation)
 (defclass player () ((pmf-price :initform nil :accessor pmf-price)))
 
 (defun player (showcase-number)
   (let ((instance (make-instance 'player)))
-    (cond ((eq showcase-number 1) (setf (pmf-price instance) (showcase1-price)))
-          ((eq showcase-number 2) (setf (pmf-price instance) (showcase2-price))))
+    (cond ((eq showcase-number 1) (setf (pmf-price instance) (showcase1-guess)))
+          ((eq showcase-number 2) (setf (pmf-price instance) (showcase2-guess))))
     instance))
 
 (defmethod pdf-error ((player player)) (pdf-error (pmf-price player)))
 (defmethod cdf-diff ((player player)) (cdf-diff (pmf-price player)))
 
-(defgeneric make-beliefs (player guess))
-(defmethod make-beliefs ((player player) guess) (observe (pmf-price player) guess))
+;; update guesstimation using guess to make posterior distribution
+(defun make-beliefs (player guess) (observe (pmf-price player) guess))
 
-(defgeneric overbid-probability (player))
-(defgeneric worse-probability (player diff))
-
-(defmethod overbid-probability ((player player)) (p (cdf-diff player) -1))
-(defmethod worse-probability ((player player) diff) (- 1D0 (p (cdf-diff player) diff)))
+(defun overbid-probability (player) (p (cdf-diff player) -1))
+(defun worse-probability (player diff) (- 1D0 (p (cdf-diff player) diff)))
 
 ;; original price distribution
 (let ((player1 (player 1))) (plot (pmf-price player1) :xtics 10))
-
 (let ((player1 (player 1))) (maximum-likelihood (pmf-price player1)))
+
 ;; after guess, the distribution is left shifted (20000 < 27750)
 (let ((player1 (player 1)))
   (make-beliefs player1 20000)
   (plot (pmf-price player1) :xtics 10))
 ;; if you think/guess the price is 20000, then you should believe it it 24000
+;; why? guess is from the prizes you see and price is from past historical data.
+;; so what you've guessed updates the prior or historical price distribution.
+;; that is, we are treating the historical data as the prior and updating it based on your guess.
 (let ((player1 (player 1)))
   (make-beliefs player1 20000)
   (maximum-likelihood (pmf-price player1)))
 
+;; for optimal bid
 (defclass gain-calc ()
   ((player :initform nil :accessor gain-player)
    (opponent :initform nil :accessor gain-opponent)))
@@ -191,9 +183,6 @@
     instance))
 
 (defmethod pmf-price ((calc gain-calc)) (pmf-price (gain-player calc)))
-
-($first *prices*)
-($last *prices*)
 
 (defgeneric win-probability (calc diff))
 (defmethod win-probability ((calc gain-calc) diff)
@@ -236,9 +225,9 @@
 ;; prior mles
 (let ((p1 (player 1))
       (p2 (player 2)))
-  #{:prior-mle1 (maximum-likelihood (pmf-price p1))
+  #{:mle1 (maximum-likelihood (pmf-price p1))
     :mean1 (xmean (pmf-price p1))
-    :prior-mle2 (maximum-likelihood (pmf-price p2))
+    :mle2 (maximum-likelihood (pmf-price p2))
     :mean2 (xmean (pmf-price p2))})
 
 ;; after guessing
@@ -248,9 +237,9 @@
       (g2 40000))
   (make-beliefs p1 g1)
   (make-beliefs p2 g2)
-  #{:prior-mle1 (maximum-likelihood (pmf-price p1))
+  #{:mle1 (maximum-likelihood (pmf-price p1))
     :mean1 (xmean (pmf-price p1))
-    :prior-mle2 (maximum-likelihood (pmf-price p2))
+    :mle2 (maximum-likelihood (pmf-price p2))
     :mean2 (xmean (pmf-price p2))})
 
 ;; expected gains for player 1
@@ -297,6 +286,7 @@
          (gains (expected-gains c2)))
     (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) gains)))
 
+;; optimal bid and expected gains
 (-> (loop :for bid :in (linspace 15000 50000 36)
           :for p1 = (player 1)
           :for p2 = (player 2)

@@ -26,13 +26,16 @@
   (declare (ignore default))
   (+ (mu pdf) (gsll:gaussian-pdf (coerce x 'double-float) (sigma pdf))))
 
-(defun gaussian-kde-fn (samples &key h)
+;; h will be specified
+(defun gaussian-kde-fn (samples &key (h :silverman))
   (let* ((n ($count samples))
          (mn (/ (reduce #'+ samples) n))
          (var (/ (reduce #'+ (mapcar (lambda (x) (expt (abs (- x mn)) 2)) samples)) n))
          (sd (sqrt var))
-         (h (or h (* 0.5 (expt (* (/ 4D0 3D0) (expt sd 5)) (/ 1D0 5D0)))))
-         (cnvfn (lambda (x) (mapcar (lambda (v) (/ (- x v) h)) samples))))
+         (h (cond ((eq h :silverman) (expt (/ (* 4D0 (expt sd 5D0)) (* 3D0 n)) (/ 1D0 5D0)))
+                  ((eq h :scott) (/ (* 3.5D0 sd) (expt n (/ 1D0 3D0))))
+                  (t (or h 1000D0))))
+         (cnvfn (lambda (x) (mapcar (lambda (v) (* 1D0 (/ (- x v) h))) samples))))
     (lambda (x)
       (* (/ 1D0 (* n h))
          (reduce #'+ (mapcar (lambda (v) (gsll:gaussian-pdf v 1D0))
@@ -60,7 +63,7 @@
    (m :initform nil :accessor xmean)
    (v :initform nil :accessor xvariance)))
 
-(defun empirical (samples &key h)
+(defun empirical (samples &key (h :silverman))
   (let ((instance (make-instance 'empirical)))
     (setf (kde instance) (gaussian-kde-fn samples :h h))
     (setf (xmean instance) (mean samples))
