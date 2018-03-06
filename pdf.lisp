@@ -55,6 +55,9 @@
     (normalize pmf)
     pmf))
 
+(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 5) &allow-other-keys)
+  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+
 (defun gaussian-pmf (&key (mu 0D0) (sigma 1D0) (nsigma 4D0) (n 101))
   (let* ((pmf (make-instance 'pmf))
          (pdf (gaussian :mu mu :sigma sigma))
@@ -64,9 +67,6 @@
     (loop :for x :in xs :do (assign pmf x (p pdf x)))
     (normalize pmf)
     pmf))
-
-(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 5) &allow-other-keys)
-  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
 (defclass empirical (pdf)
   ((kde :initform nil :accessor kde)
@@ -88,7 +88,10 @@
   (let* ((pmf (make-instance 'pmf))
          (mu (xmean pdf))
          (sigma (sqrt (xvariance pdf)))
-         (ixs (or xs (linspace (- mu (* 4D0 sigma)) (+ mu (* 4D0 sigma)) (1- steps)))))
+         (ixs (or xs (linspace (- mu (* 4D0 sigma)) (+ mu (* 4D0 sigma)) steps))))
     (loop :for x :in ixs :do (assign pmf x (p pdf x)))
     (normalize pmf)
     pmf))
+
+(defun empirical-pmf (samples &key xs (steps 101) (h :silverman))
+  (to-pmf (empirical samples :h h) :xs xs :steps steps))
