@@ -24,7 +24,7 @@
 
 (defmethod p ((pdf gaussian) x &optional default)
   (declare (ignore default))
-  (+ (mu pdf) (gsll:gaussian-pdf (coerce x 'double-float) (sigma pdf))))
+  (gsll:gaussian-pdf (coerce (- x (mu pdf)) 'double-float) (sigma pdf)))
 
 ;; h will be specified
 (defun gaussian-kde-fn (samples &key (h :silverman))

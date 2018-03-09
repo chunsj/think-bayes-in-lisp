@@ -147,7 +147,7 @@
           (sort xps (lambda (a b) (funcall lesspfn (car a) (car b))))
           xps))))
 
-(defmethod plot ((pmf pmf) &key (xtics 20) &allow-other-keys)
+(defmethod plot ((pmf pmf) &key (xtics 10) &allow-other-keys)
   (plot-boxes (sortxps (xps pmf)) :xtics xtics))
 
 (defmethod rand ((pmf pmf))
