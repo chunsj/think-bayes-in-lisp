@@ -50,3 +50,6 @@
 
 (defmethod plot ((beta beta) &key (steps 101) (xtics 20))
   (plot (to-pmf beta :steps steps) :xtics xtics))
+
+(defun beta-pmf (&key (alpha 1D0) (beta 1D0) (steps 101))
+  (to-pmf (beta :alpha alpha :beta beta) :steps steps))
