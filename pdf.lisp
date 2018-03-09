@@ -55,7 +55,7 @@
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 5) &allow-other-keys)
+(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 10) &allow-other-keys)
   (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
 (defun gaussian-pmf (&key (mu 0D0) (sigma 1D0) (nsigma 4D0) (n 101))
