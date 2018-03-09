@@ -95,3 +95,55 @@
 
 (defun empirical-pmf (samples &key xs (steps 101) (h :silverman))
   (to-pmf (empirical samples :h h) :xs xs :steps steps))
+
+(defclass poisson (pdf)
+  ((l :initform 1D0 :accessor rate)))
+
+(defun factorial (n)
+  (loop :for result = 1 :then (* result i)
+        :for i :from 2 :to n
+        :finally (return result)))
+
+(defun poisson (&key (rate 1D0))
+  (let ((instance (make-instance 'poisson)))
+    (setf (rate instance) rate)
+    instance))
+
+(defmethod p ((pdf poisson) x &optional default)
+  (declare (ignore default))
+  (gsll:poisson-pdf (round x) (coerce (rate pdf) 'double-float)))
+
+(defmethod to-pmf ((pdf poisson) &key xs (steps 21) &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (ixs (or xs (linspace 0 (1- steps) steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod plot ((pdf poisson) &key xs (steps 21) (xtics 10) &allow-other-keys)
+  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+
+(defun poisson-pmf (&key (rate 1D0) (n 21)) (to-pmf (poisson :rate rate) :steps n))
+
+(defclass exponential (poisson) ())
+
+(defun exponential (&key (rate 1D0))
+  (let ((instance (make-instance 'exponential)))
+    (setf (rate instance) rate)
+    instance))
+
+(defmethod p ((pdf exponential) x &optional default)
+  (declare (ignore default))
+  (gsll:exponential-pdf (coerce x 'double-float) (coerce (/ 1D0 (rate pdf)) 'double-float)))
+
+(defmethod to-pmf ((pdf exponential) &key xs (steps 101) &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (ixs (or xs (linspace 0 10 steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod plot ((pdf exponential) &key xs (steps 101) (xtics 10) &allow-other-keys)
+  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+
+(defun exponential-pmf (&key (rate 1D0) (n 101)) (to-pmf (exponential :rate rate) :steps n))
