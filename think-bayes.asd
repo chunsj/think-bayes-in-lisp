@@ -12,4 +12,5 @@
                (:file "pmf")
                (:file "cdf")
                (:file "beta")
-               (:file "pdf")))
+               (:file "pdf")
+               (:file "bias")))

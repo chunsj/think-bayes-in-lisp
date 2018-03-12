@@ -136,14 +136,16 @@
   (declare (ignore default))
   (gsll:exponential-pdf (coerce x 'double-float) (coerce (/ 1D0 (rate pdf)) 'double-float)))
 
-(defmethod to-pmf ((pdf exponential) &key xs (steps 101) &allow-other-keys)
+(defmethod to-pmf ((pdf exponential) &key xs (steps 101) high &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
-         (ixs (or xs (linspace 0 10 steps))))
+         (h (or high 10))
+         (ixs (or xs (linspace 0 h steps))))
     (loop :for x :in ixs :do (assign pmf x (p pdf x)))
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf exponential) &key xs (steps 101) (xtics 10) &allow-other-keys)
-  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+(defmethod plot ((pdf exponential) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (plot (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
 
-(defun exponential-pmf (&key (rate 1D0) (n 101)) (to-pmf (exponential :rate rate) :steps n))
+(defun exponential-pmf (&key (rate 1D0) (n 101) high)
+  (to-pmf (exponential :rate rate) :steps n :high high))
