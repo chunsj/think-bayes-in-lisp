@@ -38,7 +38,7 @@
 
 (defgeneric plot (pmf &key &allow-other-keys))
 
-(defgeneric copy (pmf))
+(defgeneric copy (pmf &key &allow-other-keys))
 
 (defgeneric p> (pmf other))
 (defgeneric p>= (pmf other))
@@ -233,9 +233,9 @@
        n)))
 (defun sd (xs) (sqrt (variance xs)))
 
-(defmethod copy ((pmf pmf))
-  (let ((instance (make-instance 'pmf)))
-    (loop :for xp :in (xps pmf) :do (assign pmf (car x) (cdr p)))
+(defmethod copy ((pmf pmf) &key class &allow-other-keys)
+  (let ((instance (make-instance (or class (type-of pmf)))))
+    (loop :for xp :in (xps pmf) :do (assign instance (car xp) (cdr xp)))
     instance))
 
 (defun xrange (low high &optional (step-size 1))
@@ -327,3 +327,16 @@
         :for p1 = (cdr xp)
         :when (= v1 v)
           :sum p1))
+
+(defun uniform-pmf (&key (low 0D0) (high 1D0) (skip 0.1))
+  (let ((pmf (pmf)))
+    (loop :for x :in (xrange low (+ high skip) skip)
+          :do (assign pmf x 1D0))
+    (normalize pmf)
+    pmf))
+
+(defun removex (pmf fcondition)
+  (loop :for x :in (xs pmf)
+        :when (funcall fcondition x)
+          :do (remhash x (xpmap pmf)))
+  (normalize pmf))

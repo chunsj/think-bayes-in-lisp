@@ -46,3 +46,118 @@
 ;; in the red line example, a gap that is twice as big is twice as likely to be observed.
 (defparameter *zb* (bias-pmf *z*))
 (plot *zb*)
+
+;; wait time, which is called as y, is the time between the arrival of a passenger and the next
+;; arrival of a train. elapsed time, x, is the time between arrival of the previous train and the
+;; arrival of a passenger.
+
+;; zb = x + y
+;;
+;; if a gap is given as n minute, then y is uniform from 0 to n minutes. so the overall distribution
+;; is a mixture of uniform distributions weighted according to the probability of each gap.
+
+(defun waittime-pmf (zb)
+  (let ((metapmf (pmf)))
+    (loop :for xp :in (xps zb)
+          :for gap = (car xp)
+          :for prob = (cdr xp)
+          :do (let ((pmf (uniform-pmf :low 0 :high gap :skip 10D0)))
+                (assign metapmf pmf prob)))
+    (mixture metapmf)))
+
+(plot (waittime-pmf *zb*))
+
+;; encapsulate the process
+(defclass waittime-calc ()
+  ((pmf-z :initform nil :accessor pmf-z)
+   (pmf-zb :initform nil :accessor pmf-zb)
+   (pmf-y :initform nil :accessor pmf-y)
+   (pmf-x :initform nil :accessor pmf-x)))
+
+(defun waittime-calc (pmf-z)
+  (let ((self (make-instance 'waittime-calc)))
+    (setf (pmf-z self) pmf-z)
+    (setf (pmf-zb self) (bias-pmf (pmf-z self)))
+    (setf (pmf-y self) (waittime-pmf (pmf-zb self)))
+    (setf (pmf-x self) (pmf-y self)) ;; x = zp - y, 0 to gap uniform as y
+    self))
+
+;; cdf of z
+(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-z calc))))
+
+;; cdf of zb
+(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-zb calc))))
+
+;; cdf of y
+(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-y calc))))
+
+;; mean of z
+(let ((calc (waittime-calc *z*))) (/ (xmean (pmf-z calc)) 60D0))
+
+;; mean of zb
+(let ((calc (waittime-calc *z*))) (/ (xmean (pmf-zb calc)) 60D0))
+
+;; mean of y
+(let ((calc (waittime-calc *z*))) (/ (xmean (pmf-y calc)) 60D0))
+
+;; wait times prediction
+;;
+;; suppose that when i arrive at the platform i see 10 people waiting, how long should i expect to
+;; wait until the next train arrives?
+;;
+;; suppose that we are given the actual distribution of z, and we know that the passenger arrival
+;; rate λ as 2 passengers per minute.
+;;
+;; in this case we can:
+;; 1. use the distribution of z to compute the prior distribution of zp, the time between trains as
+;;    seen by a passenger.
+;; 2. then we can use the number of passengers to estimate the distribution of x, the elapsed time
+;;    since the last train.
+;; 3. finally, we use the relation y = zb - x to get the distribution of y.
+(defparameter *wtc* (waittime-calc *z*))
+
+(defclass elapsedtime-estimator ()
+  ((prior-x :initform nil :accessor prior-x)
+   (posterior-x :initform nil :accessor posterior-x)
+   (pmf-y :initform nil :accessor pmf-y)))
+
+(defclass elapsed (pmf) ())
+
+(defmethod likelihood ((self elapsed) evidence hypothesis)
+  (let ((x hypothesis)
+        (l (car evidence))
+        (k (cdr evidence)))
+    (p (poisson :rate (* l x)) k)))
+
+(defun predict-waittime (pmf-zb pmf-x)
+  (let ((pmf-y (subtract pmf-zb pmf-x)))
+    (removex pmf-y (lambda (x) (< x 0D0)))
+    pmf-y))
+
+(defun elapsedtime-estimator (wtc rate npass)
+  (let ((self (make-instance 'elapsedtime-estimator)))
+    (setf (prior-x self) (copy (pmf-x wtc) :class 'elapsed))
+    (setf (posterior-x self) (copy (prior-x self)))
+    (observe (posterior-x self) (cons rate npass))
+    (setf (pmf-y self) (predict-waittime (pmf-zb wtc) (posterior-x self)))
+    self))
+
+(defparameter *ete* (elapsedtime-estimator *wtc* (/ 2D0 60D0) 15))
+
+(plot (to-cdf (prior-x *ete*)))
+(plot (to-cdf (posterior-x *ete*)))
+
+;; predicted wait time
+(plot (to-cdf (pmf-y *ete*)))
+;; with 80% confidence, we expect the next train in less than ~320 secs or 5 minutes or so.
+(percentile (pmf-y *ete*) 80)
+
+;; what if we do not know the arrival rate of passengers, which is more realistic condition.
+;; (we're relaxing second condition of above analysis)
+;; so, we know only the distribution of gaps
+;;
+;; we need observation. and following is observed data
+;; after 5 days
+;; k1:  17  22  23  18   4
+;;  y: 4.6 1.0 1.4 5.4 5.8
+;; k2:   9   0   4  12  11
