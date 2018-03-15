@@ -158,6 +158,61 @@
 ;;
 ;; we need observation. and following is observed data
 ;; after 5 days
-;; k1:  17  22  23  18   4
-;;  y: 4.6 1.0 1.4 5.4 5.8
-;; k2:   9   0   4  12  11
+;; k1:  17  22  23  18   4 - passengers when you arrived
+;;  y: 4.6 1.0 1.4 5.4 5.8 - wait time in minutes
+;; k2:   9   0   4  12  11 - passenders after you arrived
+
+(defclass arrival-rate (pmf) ()) ;; almost identical to elapsed only different in hypothesis
+
+;; evidence is a wait time and the number of passengers that arrived
+(defmethod likelihood ((self arrival-rate) evidence hypothesis)
+  (let ((l hypothesis)
+        (y (car evidence))
+        (k (cdr evidence)))
+    (p (poisson :rate (* y l)) k)))
+
+(defclass arrival-rate-estimator ()
+  ((prior-rate :initform nil :accessor prior-rate)
+   (posterior-rate :initform nil :accessor posterior-rate)))
+
+(defun arrival-rate-estimator (passenger-data)
+  (let ((self (make-instance 'arrival-rate-estimator))
+        (hypos (mapcar (lambda (n) (/ n 60D0)) (linspace 0 5 51))))
+    (setf (prior-rate self) (pmf :class 'arrival-rate :hypotheses hypos))
+    (removex (prior-rate self) (lambda (x) (= x 0)))
+    (setf (posterior-rate self) (pmf :class 'arrival-rate :hypotheses hypos))
+    (removex (posterior-rate self) (lambda (x) (= x 0)))
+    (loop :for data :in passenger-data
+          :for y = (* 60D0 ($1 data))
+          :for k2 = ($2 data)
+          :for evidence = (cons y k2)
+          :do (observe (posterior-rate self) evidence))
+    self))
+
+(defparameter *passenger-data* '((17 4.6 9)
+                                 (22 1.0 0)
+                                 (23 1.4 4)
+                                 (18 5.4 12)
+                                 (4 5.8 11)))
+
+(defparameter *are* (arrival-rate-estimator *passenger-data*))
+
+;; prior cdf - arrival rate (passengers / min)
+(plot (scale (to-cdf (prior-rate *are*)) 60))
+
+;; posterior cdf - arrival rate (passengers / min)
+(plot (scale (to-cdf (posterior-rate *are*)) 60))
+
+;; incorporating uncertainty about one of the inputs
+;; 1. implement the analysis based on a deterministic value of the uncertain parameter (λ).
+;; 2. compute the distribution of the uncertain parameter.
+;; 3. run the analysis for each value of the parameter, and generate a set of predictive
+;;    distributions.
+;; 4. compute a mixture of the predictive distributions, using the weights from the distribution
+;;    of the parameter.
+
+(defclass wait-mixture-estimator ()
+  ((metapmf :initform nil :accessor meta-pmf)
+   (mixture :initform nil :accessor mixture-pmf)))
+
+(defun wait-mixture-estimator (wtc are &optional (num-passengers 15)))
