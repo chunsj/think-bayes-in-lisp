@@ -160,7 +160,7 @@
 ;; after 5 days
 ;; k1:  17  22  23  18   4 - passengers when you arrived
 ;;  y: 4.6 1.0 1.4 5.4 5.8 - wait time in minutes
-;; k2:   9   0   4  12  11 - passenders after you arrived
+;; k2:   9   0   4  12  11 - passengers after you arrived
 
 (defclass arrival-rate (pmf) ()) ;; almost identical to elapsed only different in hypothesis
 
@@ -215,4 +215,53 @@
   ((metapmf :initform nil :accessor meta-pmf)
    (mixture :initform nil :accessor mixture-pmf)))
 
-(defun wait-mixture-estimator (wtc are &optional (num-passengers 15)))
+(defun wait-mixture-estimator (wtc are &optional (npass 15))
+  (let ((self (make-instance 'wait-mixture-estimator)))
+    (setf (meta-pmf self) (pmf))
+    (loop :for xps :in (xps (posterior-rate are))
+          :for l = (car xps)
+          :for p = (cdr xps)
+          :for ete = (elapsedtime-estimator wtc l npass)
+          :do (assign (meta-pmf self) (pmf-y ete) p))
+    (setf (mixture-pmf self) (mixture (meta-pmf self)))
+    self))
+
+(defparameter *wme* (wait-mixture-estimator *wtc* *are*))
+
+;; mixture
+(plot (scale (to-cdf (mixture-pmf *wme*)) (/ 1 60D0)))
+
+;; 80%, almost same as above result
+(percentile (mixture-pmf *wme*) 80)
+
+;; DECISION ANLYSIS
+;;
+;; when should i stop waiting for the train and go catch a taxi?
+;;
+;; we do not have data on extreme cases so we need to build one from existing data
+(defparameter *pmf-z* (empirical-pmf (sample (to-cdf *z*) 220) :xs (linspace 0 1200 1201)))
+(defparameter *cdf-zp* (to-cdf (bias-pmf *pmf-z*)))
+
+;; build data for extreme case for this, we need biased distribution for we are biased in observation
+(defparameter *sample-zb* (append (sample *cdf-zp* 220) '(1800 2400 3000)))
+
+;; from biased data, unbiased data will be built
+(defparameter *pmf-zb* (empirical-pmf *sample-zb* :xs (xrange 60 3000)))
+(defparameter *pmf-z* (unbias-pmf *pmf-zb*))
+
+;; wait time calculator
+(defparameter *wtc* (waittime-calc *pmf-z*))
+
+(defun long-wait-probability (npass mins &optional (rate 0.0333))
+  (let* ((ete (elapsedtime-estimator *wtc* rate npass))
+         (cdf-y (to-cdf (pmf-y ete))))
+    (- 1D0 (p cdf-y (* mins 60D0)))))
+
+;; probability that wait time exceeds wtime-spec as a function of the number of passengers on the
+;; platform.
+;; for this example, there's > 10% chance of waiting more than 15 mins if there're > 35 passengers
+(let ((wtime-spec 15))
+  (-> (loop :for npass :in '(1 5 10 15 20 25 30 35)
+            :for p = (long-wait-probability npass wtime-spec)
+            :collect (cons npass p))
+      (plot-boxes)))
