@@ -48,6 +48,10 @@
 
 (defgeneric scale (pmf factor))
 
+(defgeneric marginal (pmf i))
+(defgeneric conditional (pmf i j val))
+(defgeneric maximum-likelihood-interval (pmf &key percentage))
+
 (defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
 
 (defmethod $ ((pmf pmf) x &rest default) ($ (xpmap pmf) x (car default)))
@@ -347,3 +351,35 @@
         :when (funcall fcondition x)
           :do (remhash x (xpmap pmf)))
   (normalize pmf))
+
+(defmethod marginal ((self pmf) i)
+  (let ((pmf (pmf :class (type-of self))))
+    (loop :for xps :in (xps self)
+          :for vs = (car xps)
+          :for prob = (cdr xps)
+          :do (increase pmf ($ vs i) prob))
+    (normalize pmf)
+    pmf))
+
+(defmethod conditional ((self pmf) i j val)
+  (let ((pmf (pmf :class (type-of self))))
+    (loop :for xps :in (xps self)
+          :for vs = (car xps)
+          :for prob = (cdr xps)
+          :when (= ($ vs j) val)
+            :do (increase pmf ($ vs i) prob))
+    (normalize pmf)
+    pmf))
+
+(defmethod maximum-likelihood-interval ((self pmf) &key (percentage 90))
+  (let ((interval nil)
+        (total 0D0)
+        (pxs (mapcar (lambda (xp) (cons (cdr xp) (car xp))) (xps self))))
+    (setf pxs (sort pxs (lambda (a b) (> (car a) (car b)))))
+    (loop :for px :in pxs
+          :for p = (car px)
+          :for v = (cdr px)
+          :do (incf total p)
+          :do (push v interval)
+          :when (>= total (/ percentage 100D0))
+            :return (sort interval (lambda (a b) (< (car a) (car b)))))))
