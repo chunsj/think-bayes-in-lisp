@@ -64,6 +64,18 @@
     (setf (ps instance) (mapcar (lambda (p) (expt p k)) (ps cdf)))
     instance))
 
+(defmethod copy ((cdf cdf) &key class &allow-other-keys)
+  (let ((instance (make-instance (or class (type-of cdf)))))
+    (setf (xs instance) (copy-list (xs cdf)))
+    (setf (ps instance) (copy-list (ps cdf)))
+    instance))
+
+(defmethod scale ((cdf cdf) factor)
+  (let ((instance (make-instance (type-of cdf))))
+    (setf (xs instance) (mapcar (lambda (x) (* x factor)) (xs cdf)))
+    (setf (ps instance) (copy-list (ps cdf)))
+    instance))
+
 (defmethod to-cdf ((cdf cdf) &key &allow-other-keys) cdf)
 
 (defmethod to-pmf ((cdf cdf) &key &allow-other-keys)

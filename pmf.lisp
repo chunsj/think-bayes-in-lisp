@@ -46,6 +46,8 @@
 (defgeneric p<= (pmf other))
 (defgeneric p= (pmf other))
 
+(defgeneric scale (pmf factor))
+
 (defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
 
 (defmethod $ ((pmf pmf) x &rest default) ($ (xpmap pmf) x (car default)))
@@ -236,6 +238,11 @@
 (defmethod copy ((pmf pmf) &key class &allow-other-keys)
   (let ((instance (make-instance (or class (type-of pmf)))))
     (loop :for xp :in (xps pmf) :do (assign instance (car xp) (cdr xp)))
+    instance))
+
+(defmethod scale ((pmf pmf) factor)
+  (let ((instance (make-instance (type-of pmf))))
+    (loop :for xp :in (xps pmf) :do (assign instance (* factor (car xp)) (cdr xp)))
     instance))
 
 (defun xrange (low high &optional (step-size 1))
