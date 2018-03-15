@@ -239,14 +239,15 @@
 ;; when should i stop waiting for the train and go catch a taxi?
 ;;
 ;; we do not have data on extreme cases so we need to build one from existing data
-(defparameter *pmf-z* (empirical-pmf (sample (to-cdf *z*) 220) :xs (linspace 0 1200 1201)))
+(defparameter *nsample* 220)
+(defparameter *pmf-z* (empirical-pmf (sample (to-cdf *z*) *nsample*)))
 (defparameter *cdf-zp* (to-cdf (bias-pmf *pmf-z*)))
 
 ;; build data for extreme case for this, we need biased distribution for we are biased in observation
-(defparameter *sample-zb* (append (sample *cdf-zp* 220) '(1800 2400 3000)))
+(defparameter *sample-zb* (append (sample *cdf-zp* *nsample*) '(1800 2400 3000)))
 
 ;; from biased data, unbiased data will be built
-(defparameter *pmf-zb* (empirical-pmf *sample-zb* :xs (xrange 60 3000)))
+(defparameter *pmf-zb* (empirical-pmf *sample-zb* :xs (xrange 60 3200 101)))
 (defparameter *pmf-z* (unbias-pmf *pmf-zb*))
 
 ;; wait time calculator
