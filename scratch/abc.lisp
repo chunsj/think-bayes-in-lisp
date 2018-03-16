@@ -158,6 +158,10 @@
 (median-inter-percentile-range *heights* 0.5)
 (median-sigma *heights* 2)
 
+;; for large case
+(defparameter *heights* (sample (gaussian-pmf :mu 178D0 :sigma 7.7D0) 100000))
+(defparameter *wheights* (sample (gaussian-pmf :mu 163D0 :sigma 7.3D0) 100000))
+
 ;; we can use median, sigma, instead of sample mean and sd
 (defmethod lobserve ((self height) evidence &key multiplep)
   (declare (ignore multiplep))
@@ -175,8 +179,8 @@
           :for lls = (log (p (gaussian :mu sigma :sigma stderr-s) s))
           :do (increase self hypo (+ llm lls)))))
 
-;; ~ 0.048 for 80%
-(let* ((prior-range (find-prior-range *heights* 31 4D0))
+;; men
+(let* ((prior-range (find-prior-range *heights* 101 4D0))
        (mus (car prior-range))
        (sigmas (cdr prior-range))
        (suite (height mus sigmas)))
@@ -184,10 +188,10 @@
   (lobserve suite *heights*)
   (exponentiate suite)
   (normalize suite)
-  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 10D0))))
+  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
 
-;; ~ 0.052 for 80%
-(let* ((prior-range (find-prior-range *wheights* 31 4D0))
+;; women
+(let* ((prior-range (find-prior-range *wheights* 101 4D0))
        (mus (car prior-range))
        (sigmas (cdr prior-range))
        (suite (height mus sigmas)))
@@ -195,4 +199,4 @@
   (lobserve suite *wheights*)
   (exponentiate suite)
   (normalize suite)
-  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 10D0))))
+  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
