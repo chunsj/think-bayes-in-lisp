@@ -96,6 +96,9 @@
 (defun empirical-pmf (samples &key xs (steps 101) (h :silverman))
   (to-pmf (empirical samples :h h) :xs xs :steps steps))
 
+(defmethod to-cdf ((pdf empirical) &key xs (steps 101) &allow-other-keys)
+  (to-cdf (to-pmf pdf :xs xs :steps steps)))
+
 (defclass poisson (pdf)
   ((l :initform 1D0 :accessor rate)))
 

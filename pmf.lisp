@@ -20,6 +20,7 @@
 (defgeneric mult (pmf x factor))
 (defgeneric subtract (pmf other))
 
+(defgeneric pmax (pmf))
 (defgeneric xmean (pmf))
 (defgeneric xvariance (pmf))
 (defgeneric xsd (pmf))
@@ -52,6 +53,12 @@
 (defgeneric conditional (pmf i j val))
 (defgeneric maximum-likelihood-interval (pmf &key percentage))
 
+(defgeneric logarithmize (pmf))
+(defgeneric exponentiate (pmf))
+
+(defgeneric lobserve (pmf evidence &key multiplep))
+(defgeneric llikelihood (pmf evidence hypothesis))
+
 (defclass pmf () ((xpmap :initform #{} :accessor xpmap)))
 
 (defmethod $ ((pmf pmf) x &rest default) ($ (xpmap pmf) x (car default)))
@@ -80,12 +87,41 @@
         :for l = (likelihood pmf evidence h)
         :do (mult pmf h l)))
 
+(defun lobserve-evidence (pmf evidence)
+  (loop :for h :in (xs pmf)
+        :for l = (llikelihood pmf evidence h)
+        :do (increase pmf h l)))
+
 (defmethod observe ((pmf pmf) evidence &key (multiplep nil))
   (if multiplep
       (loop :for ev :in evidence
             :do (observe-evidence pmf ev))
       (observe-evidence pmf evidence))
   (normalize pmf))
+
+(defmethod lobserve ((pmf pmf) evidence &key (multiplep nil))
+  (if multiplep
+      (loop :for ev :in evidence
+            :do (lobserve-evidence pmf ev))
+      (lobserve-evidence pmf evidence)))
+
+(defmethod logarithmize ((pmf pmf))
+  (let ((m (pmax pmf)))
+    (loop :for xp :in (xps pmf)
+          :for x = (car xp)
+          :for p = (cdr xp)
+          :do (if (zerop p)
+                  (removex pmf (lambda (xx) (eq xx x)))
+                  (assign pmf x (log (/ p m)))))
+    pmf))
+
+(defmethod exponentiate ((pmf pmf))
+  (let ((m (pmax pmf)))
+    (loop :for xp :in (xps pmf)
+          :for x = (car xp)
+          :for p = (cdr xp)
+          :do (assign pmf x (exp (- p m))))
+    pmf))
 
 (defmethod assign ((pmf pmf) x &optional (p 0D0)) (setf ($ pmf x) p))
 
@@ -383,3 +419,22 @@
           :do (push v interval)
           :when (>= total (/ percentage 100D0))
             :return (sort interval (lambda (a b) (< (car a) (car b)))))))
+
+(defmethod pmax ((self pmf))
+  (loop :for xp :in (xps self)
+        :for p = (cdr xp)
+        :maximizing p))
+
+(defun median-inter-percentile-range (xs p)
+  (let* ((cdf (to-cdf (empirical xs)))
+         (median (percentile cdf 50D0))
+         (alpha (/ (- 1 p) 2D0)))
+    (cons median (- (x cdf (- 1 alpha)) (x cdf alpha)))))
+
+(defun median-sigma (xs nsigma)
+  (let* ((half-p(- (gsll:gaussian-p (coerce nsigma 'double-float) 1D0) 0.5))
+         (median-ipr (median-inter-percentile-range xs (* 2D0 half-p)))
+         (median (car median-ipr))
+         (ipr (cdr median-ipr))
+         (s (/ ipr 2D0 nsigma)))
+    (cons median s)))
