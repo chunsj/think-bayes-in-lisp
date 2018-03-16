@@ -33,6 +33,7 @@
 (defgeneric maximum (pmf k))
 
 (defgeneric maximum-likelihood (pmf))
+(defgeneric )
 
 (defgeneric to-cdf (pmf &key &allow-other-keys))
 (defgeneric to-pmf (cdf &key &allow-other-keys))
@@ -131,7 +132,8 @@
   (let ((total (reduce #'+ (mapcar #'cdr (xps pmf)))))
     (when (not (zerop total))
       (let ((f (/ fraction total)))
-        (maphash (lambda (x p) (setf ($ pmf x) (* f p))) (xpmap pmf))))))
+        (maphash (lambda (x p) (setf ($ pmf x) (* f p))) (xpmap pmf))))
+    total))
 
 (defmethod xs ((pmf pmf)) (hash-table-keys (xpmap pmf)))
 
