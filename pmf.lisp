@@ -290,7 +290,10 @@
 (defun xrange (low high &optional (step-size 1))
   (loop :for i :from low :below high :by step-size :collect i))
 
-(defun repeat (n data) (loop :for i :from 0 :below n :collect data))
+(defun repeat (n data-or-function)
+  (cond ((functionp data-or-function) (loop :for i :from 0 :below n
+                                            :collect (funcall data-or-function)))
+        (t (loop :for i :from 0 :below n :collect data-or-function))))
 
 (defmethod p> ((pmf1 pmf) (pmf2 pmf))
   (loop :for xp :in (xps pmf1)
