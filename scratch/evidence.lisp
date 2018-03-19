@@ -8,4 +8,8 @@
       1
       0))
 
+(defun normal-random (&optional (mu 0D0) (sigma 1D0))
+  (car (sample (gaussian-pmf :mu mu :sigma sigma) 1)))
+
 (repeat 10 (lambda () (flip 0.1)))
+(repeat 100 (lambda () (normal-random)))

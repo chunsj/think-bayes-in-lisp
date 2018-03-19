@@ -33,7 +33,6 @@
 (defgeneric maximum (pmf k))
 
 (defgeneric maximum-likelihood (pmf))
-(defgeneric )
 
 (defgeneric to-cdf (pmf &key &allow-other-keys))
 (defgeneric to-pmf (cdf &key &allow-other-keys))
