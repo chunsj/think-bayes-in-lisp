@@ -1,5 +1,7 @@
 (in-package :think-bayes)
 
+(defparameter *gsll-rng* (gsll:make-random-number-generator gsll::+ranlxd2+))
+
 (defclass pdf () ())
 
 (defmethod to-pmf ((pdf pdf) &key xs &allow-other-keys)
@@ -28,6 +30,9 @@
 
 (defun gaussian-probability (x &key (mu 0D0) (sigma 1D0))
   (gsll:gaussian-pdf (coerce (- x mu) 'double-float) sigma))
+
+(defun gaussian-random (&key (mu 0D0) (sigma 1D0))
+  (+ mu (gsll:sample *gsll-rng* :gaussian :sigma (coerce sigma 'double-float))))
 
 ;; h will be specified
 (defun gaussian-kde-fn (samples &key (h :silverman))
@@ -122,6 +127,9 @@
 (defun poisson-probability (x &key (rate 1D0))
   (gsll:poisson-pdf (round x) (coerce rate 'double-float)))
 
+(defun poisson-random (&key (rate 1D0))
+  (gsll:sample *gsll-rng* :poisson :mu (coerce rate 'double-float)))
+
 (defmethod to-pmf ((pdf poisson) &key xs (steps 21) &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
          (ixs (or xs (linspace 0 (1- steps) steps))))
@@ -147,6 +155,9 @@
 
 (defun exponential-probability (x &key (rate 1D0))
   (gsll:exponential-pdf (coerce x 'double-float) (coerce (/ 1D0 rate) 'double-float)))
+
+(defun exponential-random (&key (rate 1D0))
+  (gsll:sample *gsll-rng* :exponential :mu (coerce (/ 1D0 rate) 'double-float)))
 
 (defmethod to-pmf ((pdf exponential) &key xs (steps 101) high &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
