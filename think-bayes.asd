@@ -13,4 +13,5 @@
                (:file "cdf")
                (:file "beta")
                (:file "pdf")
-               (:file "bias")))
+               (:file "bias")
+               (:file "pp")))
