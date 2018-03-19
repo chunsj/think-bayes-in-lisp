@@ -55,9 +55,9 @@
 (defun reverse-scale (exam pmf)
   (let ((new (pmf)))
     (loop :for xp :in (xps pmf)
-          :for x = (car xp)
+          :for y = (car xp)
           :for p = (cdr xp)
-          :for raw = (x exam x)
+          :for raw = (x exam y)
           :do (increase new raw p))
     new))
 
@@ -70,6 +70,7 @@
 
 (plot (score-pmf (exam)))
 (plot (raw-pmf (exam)))
+(plot (prior-pmf (exam)))
 (plot (to-cdf (prior-pmf (exam))))
 
 (defclass sat (pmf)
@@ -80,24 +81,21 @@
   (let ((self (pmf :class 'sat)))
     (setf (exam-data self) exam)
     (setf (score self) score)
-    (loop :for xp :in (xps (prior-pmf exam))
-          :for p-correct = (car xp)
-          :for prob = (cdr xp)
-          :do (assign self p-correct prob))
+    (copy (prior-pmf exam) :to self)
     (observe self score)
     self))
 
 (x (exam) 780)
+(x (exam) 740)
 (apply #'max (xs (raw-pmf (exam))))
-
 (apply #'max (xs (sat (exam) 780)))
-
-(defun binomial (k n x) (gsll:binomial-p (round k) (coerce x 'double-float) (round n)))
 
 (defmethod likelihood ((self sat) evidence hypothesis)
   (let ((p-correct hypothesis)
         (score evidence))
-    (binomial (x (exam-data self) score) (apply #'max (xs (raw-pmf (exam-data self)))) p-correct)))
+    (p (binomial :k (x (exam-data self) score)
+                 :n (apply #'max (xs (raw-pmf (exam-data self)))))
+       p-correct)))
 
 (plot (to-cdf (sat (exam) 780)))
 (plot (to-cdf (sat (exam) 740)))

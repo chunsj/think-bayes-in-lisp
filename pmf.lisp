@@ -289,8 +289,8 @@
        n)))
 (defun sd (xs) (sqrt (variance xs)))
 
-(defmethod copy ((pmf pmf) &key class &allow-other-keys)
-  (let ((instance (make-instance (or class (type-of pmf)))))
+(defmethod copy ((pmf pmf) &key class to &allow-other-keys)
+  (let ((instance (or to (make-instance (or class (type-of pmf))))))
     (loop :for xp :in (xps pmf) :do (assign instance (car xp) (cdr xp)))
     instance))
 
