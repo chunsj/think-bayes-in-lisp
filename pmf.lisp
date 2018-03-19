@@ -17,8 +17,9 @@
 (defgeneric p (pmf x &optional default))
 
 (defgeneric add (pmf other))
-(defgeneric mult (pmf x factor))
 (defgeneric subtract (pmf other))
+(defgeneric mult (pmf x factor))
+(defgeneric divide (pmf denom))
 
 (defgeneric pmax (pmf))
 (defgeneric xmean (pmf))
@@ -72,14 +73,18 @@
 (defmethod print-object ((pmf pmf) stream)
   (format stream "#<PMF ~A>" (xpmap pmf)))
 
-(defmethod init ((pmf pmf) &key hypotheses &allow-other-keys)
+(defmethod init ((pmf pmf) &key hypotheses histogram &allow-other-keys)
   (when hypotheses
     (loop :for h :in hypotheses :do (increase pmf h 1D0))
+    (normalize pmf))
+  (when histogram
+    (loop :for rec :in histogram :do (increase pmf (car rec) (cdr rec)))
     (normalize pmf)))
 
-(defun pmf (&key (class 'pmf) (hypotheses nil))
+(defun pmf (&key (class 'pmf) (hypotheses nil) (histogram nil))
   (let ((instance (make-instance class)))
     (init instance :hypotheses hypotheses)
+    (init instance :histogram histogram)
     instance))
 
 (defun observe-evidence (pmf evidence)
@@ -248,6 +253,14 @@
                     :for v2 = (car xp2)
                     :for p2 = (cdr xp2)
                     :do (increase instance (- v1 v2) (* p1 p2))))
+    instance))
+
+(defmethod divide ((pmf pmf) (denom number))
+  (let ((instance (make-instance 'pmf)))
+    (loop :for xp :in (xps pmf)
+          :for v1 = (car xp)
+          :for p1 = (cdr xp)
+          :do (assign instance (/ v1 denom) p1))
     instance))
 
 (defmethod maximum ((pmf pmf) k)

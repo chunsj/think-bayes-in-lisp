@@ -87,3 +87,30 @@
           :do (increase pmf val (- prob prev))
           :do (setf prev prob))
     pmf))
+
+(defclass interpolator ()
+  ((xs :initform nil :accessor xs)
+   (ys :initform nil :accessor ys)))
+
+(defgeneric y (interpolator x))
+
+(defun interpolator (xs ys)
+  (let ((instance (make-instance 'interpolator)))
+    (setf (xs instance) xs
+          (ys instance) ys)
+    instance))
+
+(defun interpolate (x xs ys)
+  (cond ((<= x ($0 xs)) ($0 ys))
+        ((>= x ($last xs)) ($last ys))
+        (t (let* ((i (bisect xs x))
+                  (frac (* 1D0 (/ (- x ($ xs (- i 1)))
+                                  (- ($ xs i) ($ xs (- i 1)))))))
+             (+ ($ ys (- i 1))
+                (* frac 1D0 (- ($ ys i) ($ ys (- i 1)))))))))
+
+(defmethod y ((interpolator interpolator) x)
+  (interpolate x (xs interpolator) (ys interpolator)))
+
+(defmethod x ((interpolator interpolator) y)
+  (interpolate y (ys interpolator) (xs interpolator)))
