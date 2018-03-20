@@ -37,7 +37,7 @@
                             (cons score freq)))
          (reverse))))
 
-(plot (to-cdf (pmf :histogram (read-score))))
+(view (to-cdf (pmf :histogram (read-score))))
 
 ;; score-pmf: pmf of scaled scores
 ;; raw-pmf: pmf of raw scores
@@ -68,10 +68,10 @@
     (setf (prior-pmf self) (divide (raw-pmf self) (apply #'max (xs (raw-pmf self)))))
     self))
 
-(plot (score-pmf (exam)))
-(plot (raw-pmf (exam)))
-(plot (prior-pmf (exam)))
-(plot (to-cdf (prior-pmf (exam))))
+(view (score-pmf (exam)))
+(view (raw-pmf (exam)))
+(view (prior-pmf (exam)))
+(view (to-cdf (prior-pmf (exam))))
 
 (defclass sat (pmf)
   ((exam :initform nil :accessor exam-data)
@@ -97,8 +97,8 @@
                  :n (apply #'max (xs (raw-pmf (exam-data self)))))
        p-correct)))
 
-(plot (to-cdf (sat (exam) 780)))
-(plot (to-cdf (sat (exam) 740)))
+(view (to-cdf (sat (exam) 780)))
+(view (to-cdf (sat (exam) 740)))
 
 (defclass top-level (pmf) ())
 
@@ -177,8 +177,8 @@
 
 ;; calibrate to difficulties: -0.05 1.8
 ;; efficacies deviation: 1.5
-(plot (to-cdf (raw-pmf (exam))))
-(plot (to-cdf (raw-score-dist (exam) (gaussian-pmf :sigma 1.5D0 :nsigma 3D0))))
+(view (to-cdf (raw-pmf (exam))))
+(view (to-cdf (raw-score-dist (exam) (gaussian-pmf :sigma 1.5D0 :nsigma 3D0))))
 
 (defclass sat2 (pmf)
   ((exam :initform nil :accessor exam-data)
@@ -199,8 +199,8 @@
          (pmf (pmf-correct efficacy (difficulties (exam-data self)))))
     (p pmf raw)))
 
-(plot (to-cdf (sat2 (exam) 780)))
-(plot (to-cdf (sat2 (exam) 740)))
+(view (to-cdf (sat2 (exam) 780)))
+(view (to-cdf (sat2 (exam) 740)))
 
 (let* ((exam (exam))
        (a-sat (sat2 exam 780))

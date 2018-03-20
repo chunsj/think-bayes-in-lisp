@@ -48,8 +48,8 @@
          (ps (loop :for x :in xs :collect (gsll:beta-p x (a beta) (b beta)))))
     (cdf :xs xs :ps ps)))
 
-(defmethod plot ((beta beta) &key (steps 101) (xtics 20))
-  (plot (to-pmf beta :steps steps) :xtics xtics))
+(defmethod view ((beta beta) &key (steps 101) (xtics 20))
+  (view (to-pmf beta :steps steps) :xtics xtics))
 
 (defun beta-pmf (&key (alpha 1D0) (beta 1D0) (steps 101))
   (to-pmf (beta :alpha alpha :beta beta) :steps steps))

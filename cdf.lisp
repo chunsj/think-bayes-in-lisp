@@ -51,7 +51,7 @@
   (let ((p (/ (- 1D0 (/ percentage 100D0)) 2)))
     (cons (x cdf p) (x cdf (- 1D0 p)))))
 
-(defmethod plot ((cdf cdf) &key (xtics 10) &allow-other-keys)
+(defmethod view ((cdf cdf) &key (xtics 10) &allow-other-keys)
   (plot-boxes (sortxps (xps cdf)) :xtics xtics))
 
 (defmethod rand ((cdf cdf)) (x cdf (random 1D0)))

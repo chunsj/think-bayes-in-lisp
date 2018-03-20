@@ -10,9 +10,9 @@
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf pdf) &key xs &allow-other-keys)
+(defmethod view ((pdf pdf) &key xs &allow-other-keys)
   (when xs
-    (plot (to-pmf pdf :xs xs))))
+    (view (to-pmf pdf :xs xs))))
 
 (defclass gaussian (pdf)
   ((mu :initform 0D0 :accessor mu)
@@ -63,8 +63,8 @@
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf gaussian) &key xs (steps 101) (xtics 10) &allow-other-keys)
-  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+(defmethod view ((pdf gaussian) &key xs (steps 101) (xtics 10) &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
 (defun gaussian-pmf (&key (mu 0D0) (sigma 1D0) (nsigma 4D0) (n 101))
   (let* ((pmf (make-instance 'pmf))
@@ -137,8 +137,8 @@
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf poisson) &key xs (steps 21) (xtics 10) &allow-other-keys)
-  (plot (to-pmf pdf :xs xs :steps steps) :xtics xtics))
+(defmethod view ((pdf poisson) &key xs (steps 21) (xtics 10) &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
 (defun poisson-pmf (&key (rate 1D0) (n 21)) (to-pmf (poisson :rate rate) :steps n))
 
@@ -167,8 +167,8 @@
     (normalize pmf)
     pmf))
 
-(defmethod plot ((pdf exponential) &key xs (steps 101) (xtics 10) high &allow-other-keys)
-  (plot (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
+(defmethod view ((pdf exponential) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
 
 (defun exponential-pmf (&key (rate 1D0) (n 101) high)
   (to-pmf (exponential :rate rate) :steps n :high high))

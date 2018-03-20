@@ -38,7 +38,7 @@
 (defgeneric to-cdf (pmf &key &allow-other-keys))
 (defgeneric to-pmf (cdf &key &allow-other-keys))
 
-(defgeneric plot (pmf &key &allow-other-keys))
+(defgeneric view (pmf &key &allow-other-keys))
 
 (defgeneric copy (pmf &key &allow-other-keys))
 
@@ -202,7 +202,7 @@
           (sort xps (lambda (a b) (funcall lesspfn (car a) (car b))))
           xps))))
 
-(defmethod plot ((pmf pmf) &key (xtics 10) &allow-other-keys)
+(defmethod view ((pmf pmf) &key (xtics 10) &allow-other-keys)
   (plot-boxes (sortxps (xps pmf)) :xtics xtics))
 
 (defmethod rand ((pmf pmf))
