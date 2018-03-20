@@ -119,3 +119,95 @@
        (top (pmf :class 'top-level :hypotheses '(:a :b))))
   (observe top (cons a-sat b-sat))
   top)
+
+;; a better model
+;; assume that each test-taker has some degree of efficacy, which measures their ability to
+;; answer SAT questions.
+;; assume that each question has some level of difficulty.
+;; assume that the chance that a test-taker answers a question correctly is related to efficacy
+;; and difficulty according to this function:
+(defun probability-correct (efficacy difficulty &optional (a 1D0))
+  "from IRT or item response theory"
+  (/ 1D0 (+ 1D0 (exp (* (- a) (- efficacy difficulty))))))
+
+(defun binary-pmf (p)
+  (let ((pmf (pmf)))
+    (assign pmf 0 (- 1D0 p))
+    (assign pmf 1 p)
+    pmf))
+
+(defun pmf-correct (efficacy difficulties)
+  (let* ((pmf0 (pmf :hypotheses '(0)))
+         (ps (mapcar (lambda (difficulty)
+                       (probability-correct efficacy difficulty))
+                     difficulties))
+         (pmfs (mapcar (lambda (p) (binary-pmf p)) ps)))
+    (reduce #'add pmfs :initial-value pmf0)))
+
+(defclass exam ()
+  ((scales :initform (read-scale) :accessor scales)
+   (scores :initform (read-score) :accessor scores)
+   (scorepmf :initform nil :accessor score-pmf)
+   (raw :initform nil :accessor raw-pmf)
+   (prior :initform nil :accessor prior-pmf)
+   (difficulties :initform nil :accessor difficulties)))
+
+(defun make-difficulties (center width n)
+  (let ((low (- center width))
+        (high (+ center width)))
+    (linspace low high n)))
+
+(defun exam ()
+  (let ((self (make-instance 'exam)))
+    (setf (score-pmf self) (pmf :histogram (scores self)))
+    (setf (raw-pmf self) (reverse-scale self (score-pmf self)))
+    (setf (prior-pmf self) (divide (raw-pmf self) (apply #'max (xs (raw-pmf self)))))
+    (setf (difficulties self)
+          (make-difficulties -0.05 1.8 (round (apply #'max (xs (raw-pmf self))))))
+    self))
+
+(defun raw-score-dist (exam efficacies)
+  (let ((pmfs (pmf)))
+    (loop :for xp :in (xps efficacies)
+          :for efficacy = (car xp)
+          :for prob = (cdr xp)
+          :for scores = (pmf-correct efficacy (difficulties exam))
+          :do (assign pmfs scores prob))
+    (mixture pmfs)))
+
+;; calibrate to difficulties: -0.05 1.8
+;; efficacies deviation: 1.5
+(plot (to-cdf (raw-pmf (exam))))
+(plot (to-cdf (raw-score-dist (exam) (gaussian-pmf :sigma 1.5D0 :nsigma 3D0))))
+
+(defclass sat2 (pmf)
+  ((exam :initform nil :accessor exam-data)
+   (score :initform nil :accessor score)))
+
+(defun sat2 (exam score)
+  (let ((self (pmf :class 'sat2)))
+    (setf (exam-data self) exam)
+    (setf (score self) score)
+    (copy (gaussian-pmf :sigma 1.5D0 :nsigma 3D0) :to self)
+    (observe self score)
+    self))
+
+(defmethod likelihood ((self sat2) evidence hypothesis)
+  (let* ((efficacy hypothesis)
+         (score evidence)
+         (raw (x (exam-data self) score))
+         (pmf (pmf-correct efficacy (difficulties (exam-data self)))))
+    (p pmf raw)))
+
+(plot (to-cdf (sat2 (exam) 780)))
+(plot (to-cdf (sat2 (exam) 740)))
+
+(let* ((exam (exam))
+       (a-sat (sat2 exam 780))
+       (b-sat (sat2 exam 740))
+       (a-pred (raw-score-dist exam a-sat))
+       (b-pred (raw-score-dist exam b-sat))
+       (a-like (p> a-pred b-pred))
+       (b-like (p< a-pred b-pred))
+       (c-like (p= a-pred b-pred)))
+  (list :a a-like :b (+ b-like c-like)))
