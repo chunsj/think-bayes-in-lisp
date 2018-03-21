@@ -38,8 +38,6 @@
 (defgeneric to-cdf (pmf &key &allow-other-keys))
 (defgeneric to-pmf (cdf &key &allow-other-keys))
 
-(defgeneric view (pmf &key &allow-other-keys))
-
 (defgeneric copy (pmf &key &allow-other-keys))
 
 (defgeneric p> (pmf other))
