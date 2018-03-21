@@ -140,7 +140,7 @@
 (defmethod view ((pdf poisson) &key xs (steps 21) (xtics 10) &allow-other-keys)
   (view (to-pmf pdf :xs xs :steps steps) :xtics xtics))
 
-(defun poisson-pmf (&key (rate 1D0) (n 21)) (to-pmf (poisson :rate rate) :steps n))
+(defun poisson-pmf (&key (rate 1D0) (n 21) xs) (to-pmf (poisson :rate rate) :xs xs :steps n))
 
 (defclass exponential (poisson) ())
 
