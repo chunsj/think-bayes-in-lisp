@@ -7,7 +7,7 @@
   :long-description "read description"
   :depends-on ("mu"
                "mplot"
-               "gsll")
+               "mr")
   :components ((:file "package")
                (:file "pmf")
                (:file "cdf")

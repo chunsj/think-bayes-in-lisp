@@ -82,7 +82,7 @@
        (sigmas (cdr prior-range))
        (suite (height mus sigmas)))
   (observe suite *heights* :multiplep t)
-  (plot (cv suite)))
+  (view (cv suite)))
 
 ;; compare men and women
 (defun posterior-stats (heights)

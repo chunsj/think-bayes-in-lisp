@@ -23,12 +23,12 @@
 (defun sample-sum (dists n) (pmf :hypotheses (loop :repeat n :collect (random-sum dists))))
 
 (defparameter *three* (sample-sum *dice* 1000))
-(plot *three*) ;; of course, not perfect
+(view *three*) ;; of course, not perfect
 
 ;; enumeration approach
 (defparameter *three-exact* (reduce #'add *dice*))
 ;; add works under the assumption of the random selections are independent
-(plot *three-exact*) ;; exact
+(view *three-exact*) ;; exact
 
 ;;
 ;; now for max instead of sum
@@ -40,7 +40,7 @@
 (defun sample-max (dists n) (pmf :hypotheses (loop :repeat n :collect (random-max dists))))
 
 (defparameter *max-six* (sample-max *sum-dice* 1000))
-(plot *max-six*)
+(view *max-six*)
 
 ;; enumeration
 (defun pmfmax (pmf1 pmf2)
@@ -55,7 +55,7 @@
     res))
 
 (defparameter *max-six-exact* (reduce #'pmfmax *sum-dice*))
-(plot *max-six-exact*)
+(view *max-six-exact*)
 
 ;; using cdf where cdf(x) = p(X <= x)
 ;; CDF(5) means the probability that a value from this distribution is <= 5
@@ -63,7 +63,7 @@
 ;; this is more efficient than above enumeration
 (defparameter *max-cdf* (maximum *three-exact* 6))
 (defparameter *max-pmf* (to-pmf *max-cdf*))
-(plot *max-pmf*)
+(view *max-pmf*)
 
 ;; mixtures
 ;;
@@ -89,7 +89,7 @@
     mix))
 
 ;; distribution
-(plot (mix))
+(view (mix))
 
 ;; pmf for the box of dice
 (defun pmf-dice ()
@@ -114,7 +114,7 @@
                     :do (increase pmf outcome (* weight prob))))
     pmf))
 
-(plot (box))
+(view (box))
 
 ;; mixture
-(plot (mixture (pmf-dice)))
+(view (mixture (pmf-dice)))

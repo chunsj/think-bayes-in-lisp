@@ -1,7 +1,5 @@
 (in-package :think-bayes)
 
-(defparameter *gsll-rng* (gsll:make-random-number-generator gsll::+ranlxd2+))
-
 (defclass pdf () ())
 
 (defmethod to-pmf ((pdf pdf) &key xs &allow-other-keys)
@@ -26,13 +24,13 @@
 
 (defmethod p ((pdf gaussian) x &optional default)
   (declare (ignore default))
-  (gsll:gaussian-pdf (coerce (- x (mu pdf)) 'double-float) (sigma pdf)))
+  (dnorm x :mean (mu pdf) :sd (sigma pdf)))
 
 (defun gaussian-probability (x &key (mu 0D0) (sigma 1D0))
-  (gsll:gaussian-pdf (coerce (- x mu) 'double-float) sigma))
+  (dnorm x :mean mu :sd sigma))
 
 (defun gaussian-random (&key (mu 0D0) (sigma 1D0))
-  (+ mu (gsll:sample *gsll-rng* :gaussian :sigma (coerce sigma 'double-float))))
+  (rnorm :mean mu :sd sigma))
 
 ;; h will be specified
 (defun gaussian-kde-fn (samples &key (h :silverman))
@@ -46,7 +44,7 @@
          (cnvfn (lambda (x) (mapcar (lambda (v) (* 1D0 (/ (- x v) h))) samples))))
     (lambda (x)
       (* (/ 1D0 (* n h))
-         (reduce #'+ (mapcar (lambda (v) (gsll:gaussian-pdf v 1D0))
+         (reduce #'+ (mapcar (lambda (v) (rnorm v))
                              (funcall cnvfn x)))))))
 
 (defun linspace (l h n)
@@ -122,13 +120,13 @@
 
 (defmethod p ((pdf poisson) x &optional default)
   (declare (ignore default))
-  (gsll:poisson-pdf (round x) (coerce (rate pdf) 'double-float)))
+  (dpois (round x) (rate pdf)))
 
 (defun poisson-probability (x &key (rate 1D0))
-  (gsll:poisson-pdf (round x) (coerce rate 'double-float)))
+  (dpois (round x) rate))
 
 (defun poisson-random (&key (rate 1D0))
-  (gsll:sample *gsll-rng* :poisson :mu (coerce rate 'double-float)))
+  (rpois rate))
 
 (defmethod to-pmf ((pdf poisson) &key xs (steps 21) &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
@@ -151,13 +149,13 @@
 
 (defmethod p ((pdf exponential) x &optional default)
   (declare (ignore default))
-  (gsll:exponential-pdf (coerce x 'double-float) (coerce (/ 1D0 (rate pdf)) 'double-float)))
+  (dexp x :rate (rate pdf)))
 
 (defun exponential-probability (x &key (rate 1D0))
-  (gsll:exponential-pdf (coerce x 'double-float) (coerce (/ 1D0 rate) 'double-float)))
+  (dexp x :rate rate))
 
 (defun exponential-random (&key (rate 1D0))
-  (gsll:sample *gsll-rng* :exponential :mu (coerce (/ 1D0 rate) 'double-float)))
+  (rexp rate))
 
 (defmethod to-pmf ((pdf exponential) &key xs (steps 101) high &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
@@ -185,10 +183,10 @@
 
 (defmethod p ((pdf binomial) x &optional default)
   (declare (ignore default))
-  (gsll:binomial-pdf (k pdf) (coerce x 'double-float) (n pdf)))
+  (dbinom (k pdf) (n pdf) x))
 
 (defun binomial-probability (p &key (k 1) (n 2))
-  (gsll:binomial-pdf (round k) (coerce p 'double-float) (round n)))
+  (dbinom (round k) (round n) p))
 
 (defmethod to-pmf ((pdf binomial) &key xs (steps 101) &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))

@@ -25,9 +25,7 @@
 
 (defmethod p ((beta beta) x &optional default)
   (declare (ignore default))
-  (gsll:beta-pdf (coerce x 'double-float)
-                 (coerce (a beta) 'double-float)
-                 (coerce (b beta) 'double-float)))
+  (dbeta x (a beta) (b beta)))
 
 (defmethod to-pmf ((beta beta) &key (steps 101) &allow-other-keys)
   (if (or (< (a beta) 1D0) (< (b beta) 1D0))
@@ -45,7 +43,7 @@
 (defmethod to-cdf ((beta beta) &key (steps 101) &allow-other-keys)
   (let* ((u (- steps 1D0))
          (xs (loop :for i :from 0 :below steps :collect (/ i u)))
-         (ps (loop :for x :in xs :collect (gsll:beta-p x (a beta) (b beta)))))
+         (ps (loop :for x :in xs :collect (dbeta x (a beta) (b beta)))))
     (cdf :xs xs :ps ps)))
 
 (defmethod view ((beta beta) &key (steps 101) (xtics 20))

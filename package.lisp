@@ -1,7 +1,7 @@
 (defpackage :think-bayes
   (:nicknames :tb)
   (:use #:common-lisp
-        #:mu)
-  (:import-from #:gsll)
+        #:mu
+        #:mr)
   (:import-from #:mplot
                 #:plot-boxes))

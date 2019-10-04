@@ -104,7 +104,7 @@
           :sum (likelihood dirichlet evidence nil))))
 
 (defun gamma-random (&key (alpha 1D0) (beta 1D0))
-  (gsll:sample *gsll-rng* :gamma :a (coerce alpha 'double-float) :b (coerce beta 'double-float)))
+  (car (rgamma 1 alpha :rate beta)))
 
 (defun random-dirichlet (self)
   (let* ((rs (mapcar (lambda (p) (gamma-random :alpha p)) (params self)))
