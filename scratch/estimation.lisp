@@ -24,19 +24,19 @@
 (defparameter *dice-suite* (pmf :class 'dice :hypotheses '(4 6 8 12 20)))
 
 ;; probability distribution
-(plot *dice-suite*)
+(view *dice-suite*)
 
 ;; if 6 is rolled
 (observe *dice-suite* 6)
 
 ;; posterior distribution
-(plot *dice-suite*)
+(view *dice-suite*)
 
 ;; rolled more - 6 8 7 7 5 4
 (observe *dice-suite* '(6 8 7 7 5 4) :multiplep t)
 
 ;; updated posterior distribution
-(plot *dice-suite*) ;; with 94%, we're certain that the selected die is the 8-sided one
+(view *dice-suite*) ;; with 94%, we're certain that the selected die is the 8-sided one
 
 ;;
 ;; THE LOCOMOTIVE PROBLEM
@@ -63,13 +63,13 @@
 (defparameter *train-suite* (pmf :class 'train :hypotheses *train-hypotheses*))
 
 ;; prior distribution
-(plot *train-suite*)
+(view *train-suite*)
 
 ;; update with observed data
 (observe *train-suite* 60)
 
 ;; posterior distribution
-(plot *train-suite*)
+(view *train-suite*)
 
 ;; to maximize the change of getting the answer correctly
 (maximum-likelihood *train-suite*)
@@ -103,13 +103,13 @@
 (defparameter *train2-suite* (pmf :class 'train2 :hypotheses *train-hypotheses*))
 
 ;; prior distribution
-(plot *train2-suite*)
+(view *train2-suite*)
 
 ;; update with observed data
 (observe *train2-suite* 60)
 
 ;; posterior distribution
-(plot *train2-suite*)
+(view *train2-suite*)
 
 ;; multiple different prior makes different result
 (let ((s1 (pmf :class 'train2 :hypotheses (xrange 1 501)))
@@ -160,13 +160,13 @@
 (defparameter *euro-dataset* (append (repeat 140 :h) (repeat 110 :t)))
 
 ;; prior distribution
-(plot *euro-suite*)
+(view *euro-suite*)
 
 ;; update observations
 (observe *euro-suite* *euro-dataset* :multiplep t)
 
 ;; posterior distribution
-(plot *euro-suite*)
+(view *euro-suite*)
 
 ;; most likely value from posterior
 (maximum-likelihood *euro-suite*)
@@ -191,13 +191,13 @@
 (defparameter *euro2-suite* (triangular-prior))
 
 ;; prior distribution
-(plot *euro2-suite*)
+(view *euro2-suite*)
 
 ;; update with observations
 (observe *euro2-suite* *euro-dataset* :multiplep t)
 
 ;; posterior distribution - swamping the priors, with enough data, the result will converge
-(plot *euro2-suite*)
+(view *euro2-suite*)
 
 ;; most likely value from posterior
 (maximum-likelihood *euro2-suite*)
@@ -221,17 +221,17 @@
 (defparameter *euro2-suite* (triangular-prior))
 
 ;; prior distribution
-(plot *euro2-suite*)
+(view *euro2-suite*)
 
 ;; update with observations
 (observe *euro2-suite* (cons 140 110))
 
 ;; posterior distribution - swamping the priors, with enough data, the result will converge
-(plot *euro2-suite*)
+(view *euro2-suite*)
 
 ;; with beta distribution
 (defparameter *beta* (beta))
-(plot *beta*)
+(view *beta*)
 (observe *beta* (cons 140 110))
-(plot *beta*)
+(view *beta*)
 (xmean *beta*)

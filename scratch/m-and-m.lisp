@@ -16,11 +16,11 @@
     like))
 
 (let ((suite (pmf :class 'm-and-m :hypotheses '(:a :b))))
-  (update suite '(:bag1 :yellow))
-  (update suite '(:bag2 :green))
+  (observe suite '(:bag1 :yellow))
+  (observe suite '(:bag2 :green))
   suite)
 
 (let ((suite (pmf :class 'm-and-m :hypotheses '(:a :b))))
-  (update suite '(:bag1 :yellow))
-  (update suite '(:bag2 :green))
-  (plot suite))
+  (observe suite '(:bag1 :yellow))
+  (observe suite '(:bag2 :green))
+  (view suite))

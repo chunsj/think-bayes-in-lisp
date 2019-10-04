@@ -14,5 +14,5 @@
         (t 1.0)))
 
 (let ((pmf (pmf :class 'monty :hypotheses '(:a :b :c))))
-  (update pmf :b)
+  (observe pmf :b)
   pmf)

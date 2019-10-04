@@ -35,10 +35,10 @@
       :difference1 (mapcar #'parse-integer (cdr (split #\, ($8 lines))))
       :difference2 (mapcar #'parse-integer (cdr (split #\, ($9 lines))))}))
 
-(defparameter *showcase2011* (read-showcase-data
-                              "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2011.csv"))
-(defparameter *showcase2012* (read-showcase-data2
-                              "/Users/Sungjin/Documents/Python/ThinkBayes/code/showcases.2012.csv"))
+(defparameter *showcase2011*
+  (read-showcase-data "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/showcases.2011.csv"))
+(defparameter *showcase2012*
+  (read-showcase-data2 "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/showcases.2012.csv"))
 (defparameter *showcase* #{:showcase1 (append ($ *showcase2011* :showcase1)
                                        ($ *showcase2012* :showcase1))
                            :showcase2 (append ($ *showcase2011* :showcase2)

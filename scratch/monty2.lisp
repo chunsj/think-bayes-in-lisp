@@ -8,9 +8,9 @@
         (t 1.0)))
 
 (let ((suite (pmf :class 'monty2 :hypotheses '(:a :b :c))))
-  (update suite :b)
+  (observe suite :b)
   suite)
 
 (let ((suite (pmf :class 'monty2 :hypotheses '(:a :b :c))))
-  (update suite :b)
-  (plot suite))
+  (observe suite :b)
+  (view suite))

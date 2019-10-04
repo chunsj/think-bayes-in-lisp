@@ -10,7 +10,7 @@
 ;; score.
 
 (defun read-scale ()
-  (let* ((fname "/Users/Sungjin/Documents/Python/ThinkBayes/code/sat_scale.csv")
+  (let* ((fname "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/sat_scale.csv")
          (lines (read-lines-from fname))
          (raws nil)
          (scores nil))
@@ -26,7 +26,7 @@
     (interpolator (sort raws #'<) (sort scores #'<))))
 
 (defun read-score ()
-  (let* ((fname "/Users/Sungjin/Documents/Python/ThinkBayes/code/sat_ranks.csv")
+  (let* ((fname "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/sat_ranks.csv")
          (lines (subseq (read-lines-from fname) 3)))
     (->> (loop :for i :from 0 :below (length lines)
                :for line = ($ lines i)
@@ -198,6 +198,8 @@
          (raw (x (exam-data self) score))
          (pmf (pmf-correct efficacy (difficulties (exam-data self)))))
     (p pmf raw)))
+
+(sat2 (exam) 780)
 
 (view (to-cdf (sat2 (exam) 780)))
 (view (to-cdf (sat2 (exam) 740)))

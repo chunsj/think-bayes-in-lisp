@@ -23,7 +23,7 @@
 (defparameter *suite* (paintball *alphas* *betas* *locations*))
 
 ;; prior (alpha, beta) positions
-(plot *suite*)
+(view *suite*)
 
 (defun strafing-speed (alpha beta x)
   (let ((theta (atan (- x alpha) beta)))
@@ -38,9 +38,9 @@
     pmf))
 
 ;; pmf of location given alpha = 10, for several values of beta
-(plot (location-pmf 10 10 *locations*))
-(plot (location-pmf 10 20 *locations*))
-(plot (location-pmf 10 40 *locations*))
+(view (location-pmf 10 10 *locations*))
+(view (location-pmf 10 20 *locations*))
+(view (location-pmf 10 40 *locations*))
 
 (defmethod likelihood ((self paintball) evidence hypothesis)
   (let ((alpha ($0 hypothesis))
@@ -52,7 +52,7 @@
 (observe *suite* '(15 16 18 21) :multiplep t)
 
 ;; posterior (alpha, beta) positions
-(plot *suite*)
+(view *suite*)
 
 ;; JOINT DISTRIBUTIONS
 ;;
@@ -68,8 +68,8 @@
 (defparameter *marginal-beta* (marginal *suite* 1))
 
 ;; marginal distributions for painball
-(plot *marginal-alpha*)
-(plot *marginal-beta*)
+(view *marginal-alpha*)
+(view *marginal-beta*)
 
 ;; credible intervals for each marginal distributions
 (credible-interval *marginal-alpha* 50)
@@ -84,13 +84,13 @@
 
 ;; conditional distribution of alpha(0) w.r.t beta(1) of given value
 (defparameter *cond-beta-10* (conditional *suite* 0 1 10))
-(plot *cond-beta-10*)
+(view *cond-beta-10*)
 (defparameter *cond-beta-20* (conditional *suite* 0 1 20))
-(plot *cond-beta-20*)
+(view *cond-beta-20*)
 (defparameter *cond-beta-40* (conditional *suite* 0 1 40))
-(plot *cond-beta-40*)
+(view *cond-beta-40*)
 
 ;; distributions with credible intervals
-(plot-points (maximum-likelihood-interval *suite* :percentage 75) :xrange '(0 30) :yrange '(0 50))
-(plot-points (maximum-likelihood-interval *suite* :percentage 50) :xrange '(0 30) :yrange '(0 50))
-(plot-points (maximum-likelihood-interval *suite* :percentage 25) :xrange '(0 30) :yrange '(0 50))
+(mplot:plot-points (maximum-likelihood-interval *suite* :percentage 75) :xrange '(0 30) :yrange '(0 50))
+(mplot:plot-points (maximum-likelihood-interval *suite* :percentage 50) :xrange '(0 30) :yrange '(0 50))
+(mplot:plot-points (maximum-likelihood-interval *suite* :percentage 25) :xrange '(0 30) :yrange '(0 50))

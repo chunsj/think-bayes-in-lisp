@@ -10,7 +10,7 @@
     pmf))
 
 ;; historical or prior distribution
-(plot (hockey) :xtics 10)
+(view (hockey) :xtics 10)
 
 ;; 1. goal scoring in hockey is at least approximately poisson process which means that it is
 ;;    equally likely for a goal to be scored at any time during a game.
@@ -24,12 +24,12 @@
     (p (poisson :rate l) k)))
 
 (let ((s0 (hockey)))
-  (plot s0))
+  (view s0))
 
 ;; bruins
 (let ((s1 (hockey)))
   (observe s1 '(0 2 8 4) :multiplep t)
-  (plot s1))
+  (view s1))
 
 (let ((s1 (hockey)))
   (observe s1 '(0 2 8 4) :multiplep t)
@@ -38,7 +38,7 @@
 ;; canucks
 (let ((s2 (hockey)))
   (observe s2 '(1 3 1 0) :multiplep t)
-  (plot s2))
+  (view s2))
 
 (let ((s2 (hockey)))
   (observe s2 '(1 3 1 0) :multiplep t)
@@ -46,7 +46,7 @@
 
 (let* ((l 3.4)
        (goal-dist (poisson-pmf :rate l :n 11)))
-  (plot goal-dist))
+  (view goal-dist))
 
 (defun goal-pmf (s)
   (let ((meta-pmf (pmf))
@@ -64,16 +64,16 @@
 (observe *bruins* '(0 2 8 4) :multiplep t)
 (observe *canucks* '(1 3 1 0) :multiplep t)
 
-(plot *bruins*)
-(plot *canucks*)
+(view *bruins*)
+(view *canucks*)
 
 (defparameter *bruins-goal-dist* (goal-pmf *bruins*))
 (defparameter *canucks-goal-dist* (goal-pmf *canucks*))
 (defparameter *goal-diff* (subtract *bruins-goal-dist* *canucks-goal-dist*))
 
-(plot *bruins-goal-dist*)
-(plot *canucks-goal-dist*)
-(plot *goal-diff*)
+(view *bruins-goal-dist*)
+(view *canucks-goal-dist*)
+(view *goal-diff*)
 
 ;; for bruins's win
 (defparameter *p-win* (p> *goal-diff* 0))
@@ -86,7 +86,7 @@
 ;; here the high means the number of games, for example, if you've chosen >= 1 for x axis, then
 ;; it's like you'd like to know how many games will be there without score.
 (let ((l 3.4))
-  (plot (exponential-pmf :rate l :high 2 :n 101)))
+  (view (exponential-pmf :rate l :high 2 :n 101)))
 
 ;; if we know l the rate exactly, that's all there is to it. but we don't; instead we have a
 ;; posterior distribution of possible values of l. so as we did with the distribution of goals,
@@ -104,8 +104,8 @@
 (defparameter *canucks-time-dist* (goal-time-pmf *canucks*))
 (defparameter *p-overtime* (p< *bruins-time-dist* *canucks-time-dist*))
 
-(plot *bruins-time-dist*)
-(plot *canucks-time-dist*)
+(view *bruins-time-dist*)
+(view *canucks-time-dist*)
 
 ;; for bruins, change of winning is...
 (defparameter *p-win* (+ (p> *goal-diff* 0)
