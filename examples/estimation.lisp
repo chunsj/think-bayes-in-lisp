@@ -23,7 +23,7 @@
 
 (defparameter *dice-suite* (pmf :class 'dice :hypotheses '(4 6 8 12 20)))
 
-;; probability distribution
+;; prior probability distribution
 (view *dice-suite*)
 
 ;; if 6 is rolled
