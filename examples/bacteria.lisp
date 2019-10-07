@@ -24,9 +24,10 @@
 ;;    mean of 1/3, and there should be zero likelihood that any species has a prevalence of 100%.
 ;; 2. the distributions for each species are not independent, because the prevalence have to add
 ;;    up to 1. to capture this dependence, we need a join distribution for the three prevalences.
-;; we can use a dirichlet distribution to solve both of these problems, which is the multi-dimentional
-;; generalization of the beta distribution. instead of 2 outcomes, like heads and tails, the
-;; dirichlet distribution handles any number of outcomes; ex. p-lion, p-tiger, p-bear.
+;; we can use a dirichlet distribution to solve both of these problems, which is the
+;; multi-dimentional generalization of the beta distribution. instead of 2 outcomes,
+;; like heads and tails, the dirichlet distribution handles any number of outcomes;
+;; ex. p-lion, p-tiger, p-bear.
 
 (defclass dirichlet ()
   ((n :initform nil :accessor n)
