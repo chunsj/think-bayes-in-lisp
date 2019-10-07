@@ -447,7 +447,7 @@
     (cons median (- (x cdf (- 1 alpha)) (x cdf alpha)))))
 
 (defun median-sigma (xs nsigma)
-  (let* ((half-p (- (qnorm nsigma) 0.5))
+  (let* ((half-p (- (pnorm nsigma) 0.5))
          (median-ipr (median-inter-percentile-range xs (* 2D0 half-p)))
          (median (car median-ipr))
          (ipr (cdr median-ipr))
