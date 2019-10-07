@@ -155,6 +155,10 @@
   (normalize suite)
   (maximum-likelihood suite))
 
+
+(xmean (empirical *heights*))
+(xvariance (empirical *heights*))
+
 (median-inter-percentile-range *heights* 0.5)
 (median-sigma *heights* 2)
 
@@ -188,7 +192,7 @@
   (lobserve suite *heights*)
   (exponentiate suite)
   (normalize suite)
-  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
+  (view (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
 
 ;; women
 (let* ((prior-range (find-prior-range *wheights* 101 4D0))
@@ -199,4 +203,4 @@
   (lobserve suite *wheights*)
   (exponentiate suite)
   (normalize suite)
-  (plot (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
+  (view (to-cdf (scale (empirical-pmf (sample (cv suite) 100)) 100D0))))
