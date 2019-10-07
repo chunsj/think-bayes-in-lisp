@@ -9,8 +9,12 @@
 ;; any question correctly. this simplication makes it easy to compute the likelihood of a given
 ;; score.
 
+(defun datafn (filename)
+  (concatenate 'string "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/"
+               filename))
+
 (defun read-scale ()
-  (let* ((fname "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/sat_scale.csv")
+  (let* ((fname (datafn "sat_scale.csv"))
          (lines (read-lines-from fname))
          (raws nil)
          (scores nil))
@@ -26,7 +30,7 @@
     (interpolator (sort raws #'<) (sort scores #'<))))
 
 (defun read-score ()
-  (let* ((fname "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/sat_ranks.csv")
+  (let* ((fname (datafn "sat_ranks.csv"))
          (lines (subseq (read-lines-from fname) 3)))
     (->> (loop :for i :from 0 :below (length lines)
                :for line = ($ lines i)
@@ -85,17 +89,17 @@
     (observe self score)
     self))
 
-(x (exam) 780)
-(x (exam) 740)
-(apply #'max (xs (raw-pmf (exam))))
-(apply #'max (xs (sat (exam) 780)))
-
 (defmethod likelihood ((self sat) evidence hypothesis)
   (let ((p-correct hypothesis)
         (score evidence))
     (p (binomial :k (x (exam-data self) score)
                  :n (apply #'max (xs (raw-pmf (exam-data self)))))
        p-correct)))
+
+(x (exam) 780)
+(x (exam) 740)
+(apply #'max (xs (raw-pmf (exam))))
+(apply #'max (xs (sat (exam) 780)))
 
 (view (to-cdf (sat (exam) 780)))
 (view (to-cdf (sat (exam) 740)))
@@ -137,7 +141,7 @@
     pmf))
 
 (defun pmf-correct (efficacy difficulties)
-  (let* ((pmf0 (pmf :hypotheses '(0)))
+  (let* ((pmf0 (pmf :hypotheses '(0D0)))
          (ps (mapcar (lambda (difficulty)
                        (probability-correct efficacy difficulty))
                      difficulties))
