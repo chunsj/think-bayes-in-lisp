@@ -35,10 +35,12 @@
       :difference1 (mapcar #'parse-integer (cdr (split #\, ($8 lines))))
       :difference2 (mapcar #'parse-integer (cdr (split #\, ($9 lines))))}))
 
-(defparameter *showcase2011*
-  (read-showcase-data "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/showcases.2011.csv"))
-(defparameter *showcase2012*
-  (read-showcase-data2 "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/showcases.2012.csv"))
+(defun datafn (filename)
+  (concatenate 'string "/Users/Sungjin/Documents/MLStudy/BAP/ThinkBayes/code/"
+               filename))
+
+(defparameter *showcase2011* (read-showcase-data (datafn "showcases.2011.csv")))
+(defparameter *showcase2012* (read-showcase-data2 (datafn "showcases.2012.csv")))
 (defparameter *showcase* #{:showcase1 (append ($ *showcase2011* :showcase1)
                                        ($ *showcase2012* :showcase1))
                            :showcase2 (append ($ *showcase2011* :showcase2)
@@ -72,8 +74,8 @@
 (maximum-likelihood *showcase2-prices-pmf*)
 
 ;; shape of distributions
-(plot *showcase1-prices-pmf* :xtics 10)
-(plot *showcase2-prices-pmf* :xtics 10)
+(view *showcase1-prices-pmf* :xtics 10)
+(view *showcase2-prices-pmf* :xtics 10)
 
 ;; modeling the contestants
 ;;
@@ -156,13 +158,13 @@
 (defun worse-probability (player diff) (- 1D0 (p (cdf-diff player) diff)))
 
 ;; original price distribution
-(let ((player1 (player 1))) (plot (pmf-price player1) :xtics 10))
+(let ((player1 (player 1))) (view (pmf-price player1) :xtics 10))
 (let ((player1 (player 1))) (maximum-likelihood (pmf-price player1)))
 
 ;; after guess, the distribution is left shifted (20000 < 27750)
 (let ((player1 (player 1)))
   (make-beliefs player1 20000)
-  (plot (pmf-price player1) :xtics 10))
+  (view (pmf-price player1) :xtics 10))
 ;; if you think/guess the price is 20000, then you should believe it it 24000
 ;; why? guess is from the prizes you see and price is from past historical data.
 ;; so what you've guessed updates the prior or historical price distribution.
@@ -251,7 +253,7 @@
   (make-beliefs p2 g2)
   (let* ((c1 (gain-calc p1 p2))
          (gains (expected-gains c1)))
-    (plot-boxes gains :xtics 10)))
+    (mplot:plot-boxes gains :xtics 10)))
 
 ;; optimal bid and expected gain for player 1
 (let ((p1 (player 1))
@@ -273,7 +275,7 @@
   (make-beliefs p2 g2)
   (let* ((c2 (gain-calc p2 p1))
          (gains (expected-gains c2)))
-    (plot-boxes gains :xtics 10)))
+    (mplot:plot-boxes gains :xtics 10)))
 
 ;; for player 2
 (let ((p1 (player 1))
@@ -294,4 +296,4 @@
           :do (make-beliefs p2 40000)
           :collect (let ((c (gain-calc p1 p2)))
                      (reduce (lambda (a b) (if (> (cdr a) (cdr b)) a b)) (expected-gains c))))
-    (plot-boxes :xtics 10))
+    (mplot:plot-boxes :xtics 10))
