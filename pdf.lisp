@@ -30,7 +30,7 @@
   (dnorm x :mean mu :sd sigma))
 
 (defun gaussian-random (&key (mu 0D0) (sigma 1D0))
-  (rnorm :mean mu :sd sigma))
+  (car (rnorm 1 :mean mu :sd sigma)))
 
 ;; h will be specified
 (defun gaussian-kde-fn (samples &key (h :silverman))

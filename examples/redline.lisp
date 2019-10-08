@@ -23,7 +23,7 @@
 ;; if you stood on the platform from 4pm to 6pm and recorded the time between trains, this is the
 ;; distribution you would see.
 (defparameter *z* (empirical-pmf *gap-times* :xs (linspace 0 1200 1201)))
-(plot *z*)
+(view *z*)
 
 ;; but if you arrive at some random time (without regard to the train schedule) you would see a
 ;; different distribution. the average time between trains, as seen by a random passenger, is
@@ -45,7 +45,7 @@
 ;; in each case, values from the actual distribution are oversampled in proportion to their value.
 ;; in the red line example, a gap that is twice as big is twice as likely to be observed.
 (defparameter *zb* (bias-pmf *z*))
-(plot *zb*)
+(view *zb*)
 
 ;; wait time, which is called as y, is the time between the arrival of a passenger and the next
 ;; arrival of a train. elapsed time, x, is the time between arrival of the previous train and the
@@ -65,7 +65,7 @@
                 (assign metapmf pmf prob)))
     (mixture metapmf)))
 
-(plot (waittime-pmf *zb*))
+(view (waittime-pmf *zb*))
 
 ;; encapsulate the process
 (defclass waittime-calc ()
@@ -83,13 +83,13 @@
     self))
 
 ;; cdf of z
-(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-z calc))))
+(let ((calc (waittime-calc *z*))) (view (to-cdf (pmf-z calc))))
 
 ;; cdf of zb
-(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-zb calc))))
+(let ((calc (waittime-calc *z*))) (view (to-cdf (pmf-zb calc))))
 
 ;; cdf of y
-(let ((calc (waittime-calc *z*))) (plot (to-cdf (pmf-y calc))))
+(let ((calc (waittime-calc *z*))) (view (to-cdf (pmf-y calc))))
 
 ;; mean of z
 (let ((calc (waittime-calc *z*))) (/ (xmean (pmf-z calc)) 60D0))
@@ -144,11 +144,11 @@
 
 (defparameter *ete* (elapsedtime-estimator *wtc* (/ 2D0 60D0) 15))
 
-(plot (to-cdf (prior-x *ete*)))
-(plot (to-cdf (posterior-x *ete*)))
+(view (to-cdf (prior-x *ete*)))
+(view (to-cdf (posterior-x *ete*)))
 
 ;; predicted wait time
-(plot (to-cdf (pmf-y *ete*)))
+(view (to-cdf (pmf-y *ete*)))
 ;; with 80% confidence, we expect the next train in less than ~320 secs or 5 minutes or so.
 (percentile (pmf-y *ete*) 80)
 
@@ -198,10 +198,10 @@
 (defparameter *are* (arrival-rate-estimator *passenger-data*))
 
 ;; prior cdf - arrival rate (passengers / min)
-(plot (scale (to-cdf (prior-rate *are*)) 60))
+(view (scale (to-cdf (prior-rate *are*)) 60))
 
 ;; posterior cdf - arrival rate (passengers / min)
-(plot (scale (to-cdf (posterior-rate *are*)) 60))
+(view (scale (to-cdf (posterior-rate *are*)) 60))
 
 ;; incorporating uncertainty about one of the inputs
 ;; 1. implement the analysis based on a deterministic value of the uncertain parameter (λ).
@@ -229,7 +229,7 @@
 (defparameter *wme* (wait-mixture-estimator *wtc* *are*))
 
 ;; mixture
-(plot (scale (to-cdf (mixture-pmf *wme*)) (/ 1 60D0)))
+(view (scale (to-cdf (mixture-pmf *wme*)) (/ 1 60D0)))
 
 ;; 80%, almost same as above result
 (percentile (mixture-pmf *wme*) 80)
@@ -265,4 +265,4 @@
   (-> (loop :for npass :in '(1 5 10 15 20 25 30 35)
             :for p = (long-wait-probability npass wtime-spec)
             :collect (cons npass p))
-      (plot-boxes)))
+      (mplot:plot-boxes)))
