@@ -197,3 +197,34 @@
 
 (defun binomial-pmf (&key (k 1) (n 2) (steps 101))
   (to-pmf (binomial :k k :n n) :steps steps))
+
+(defclass gamma (pdf)
+  ((shape :initform 1D0 :accessor k)
+   (rate :initform 1D0 :accessor r)))
+
+(defun gamma (&key (alpha 1D0) (beta 1D0))
+  (let ((instance (make-instance 'gamma)))
+    (setf (k instance) alpha)
+    (setf (r instance) beta)
+    instance))
+
+(defmethod p ((pdf gamma) x &optional default)
+  (declare (ignore default))
+  (dgamma x (k pdf) :rate (r pdf)))
+
+(defun gamma-probability (p &key (alpha 1D0) (beta 1D0))
+  (dgamma p alpha :rate beta))
+
+(defmethod to-pmf ((pdf gamma) &key xs (steps 101) high &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (h (or high 20))
+         (ixs (or xs (linspace 0 h steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod view ((pdf gamma) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
+
+(defun gamma-pmf (&key (alpha 1D0) (beta 1D0) (n 101) high)
+  (to-pmf (gamma :alpha alpha :beta beta) :steps n :high high))
