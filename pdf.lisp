@@ -171,32 +171,13 @@
 (defun exponential-pmf (&key (rate 1D0) (n 101) high)
   (to-pmf (exponential :rate rate) :steps n :high high))
 
-(defclass binomial (pdf)
-  ((k :initform 1D0 :accessor k)
-   (n :initform 2D0 :accessor n)))
+(defun binomial-probability (p &key (k 1) (n 2))
+  (dbinom (round k) (round n) p))
 
-(defun binomial (&key (k 1) (n 2))
-  (let ((instance (make-instance 'binomial)))
-    (setf (k instance) (round k))
-    (setf (n instance) (round n))
-    instance))
-
-(defmethod p ((pdf binomial) x &optional default)
-  (declare (ignore default))
-  (dbinom (k pdf) (n pdf) x))
-
-(defun binomial-probability (x &key (k 1) (n 2))
-  (dbinom (round k) (round n) x))
-
-(defmethod to-pmf ((pdf binomial) &key xs (steps 101) &allow-other-keys)
-  (let* ((pmf (make-instance 'pmf))
-         (ixs (or xs (linspace 0 1 (1- steps)))))
-    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
-    (normalize pmf)
-    pmf))
-
-(defun binomial-pmf (&key (k 1) (n 2) (steps 101))
-  (to-pmf (binomial :k k :n n) :steps steps))
+(defun negbinomial-probability (p &key (k 1) (n 2))
+  (if (< p 1E-8)
+      0D0
+      (dnbinom (round k) (round n) p)))
 
 (defclass gamma (pdf)
   ((shape :initform 1D0 :accessor k)

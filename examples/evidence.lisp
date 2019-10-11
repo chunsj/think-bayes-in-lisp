@@ -92,9 +92,9 @@
 (defmethod likelihood ((self sat) evidence hypothesis)
   (let ((p-correct hypothesis)
         (score evidence))
-    (p (binomial :k (x (exam-data self) score)
-                 :n (apply #'max (xs (raw-pmf (exam-data self)))))
-       p-correct)))
+    (binomial-probability p-correct
+                          :k (x (exam-data self) score)
+                          :n (apply #'max (xs (raw-pmf (exam-data self)))))))
 
 (x (exam) 780)
 (x (exam) 740)

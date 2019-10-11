@@ -21,7 +21,12 @@
 ;; the distribution of k is the binomial distribution with parameters n and f.
 
 ;; example of binomial f,k of 1, n of 5.
-(view (binomial-pmf :k 1 :n 5))
+(let* ((pmf (make-instance 'pmf))
+       (steps 101)
+       (xs (linspace 0 1 (1- steps))))
+  (loop :for x :in xs :do (assign pmf x (binomial-probability x :k 1 :n 5)))
+  (normalize pmf)
+  (view pmf))
 
 ;; given the parameters of the system, we can find the distribution of the data, so we can solve
 ;; what is called the "forward problem".
