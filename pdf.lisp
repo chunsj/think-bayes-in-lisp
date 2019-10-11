@@ -228,3 +228,100 @@
 
 (defun gamma-pmf (&key (alpha 1D0) (beta 1D0) (n 101) high)
   (to-pmf (gamma :alpha alpha :beta beta) :steps n :high high))
+
+(defclass invgamma (pdf)
+  ((shape :initform 1D0 :accessor k)
+   (rate :initform 1D0 :accessor r)))
+
+(defun invgamma (&key (alpha 1D0) (beta 1D0))
+  (let ((instance (make-instance 'invgamma)))
+    (setf (k instance) alpha)
+    (setf (r instance) beta)
+    instance))
+
+(defmethod p ((pdf invgamma) x &optional default)
+  (declare (ignore default))
+  (if (< x 1E-8)
+      0D0
+      (dinvgamma x (k pdf) :rate (r pdf))))
+
+(defun invgamma-probability (p &key (alpha 1D0) (beta 1D0))
+  (if (< p 1E-8)
+      0D0
+      (dinvgamma p alpha :rate beta)))
+
+(defmethod to-pmf ((pdf invgamma) &key xs (steps 101) high &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (h (or high 10))
+         (ixs (or xs (linspace 0 h steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod view ((pdf invgamma) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
+
+(defun invgamma-pmf (&key (alpha 1D0) (beta 1D0) (n 101) high)
+  (to-pmf (invgamma :alpha alpha :beta beta) :steps n :high high))
+
+(defclass chisq (pdf)
+  ((df :initform 2D0 :accessor k)))
+
+(defun chisq (&key (df 2D0))
+  (let ((instance (make-instance 'chisq)))
+    (setf (k instance) df)
+    instance))
+
+(defmethod p ((pdf chisq) x &optional default)
+  (declare (ignore default))
+  (dchisq x (k pdf)))
+
+(defun chisq-probability (x &key (df 2D0))
+  (dchisq x df))
+
+(defmethod to-pmf ((pdf chisq) &key xs (steps 101) high &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (h (or high 10))
+         (ixs (or xs (linspace 0 h steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod view ((pdf chisq) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
+
+(defun chisq-pmf (&key (df 2D0) (n 101) high)
+  (to-pmf (chisq :df df) :steps n :high high))
+
+(defclass invchisq (pdf)
+  ((df :initform 2D0 :accessor k)))
+
+(defun invchisq (&key (df 2D0))
+  (let ((instance (make-instance 'invchisq)))
+    (setf (k instance) df)
+    instance))
+
+(defmethod p ((pdf invchisq) x &optional default)
+  (declare (ignore default))
+  (if (< x 1E-8)
+      0D0
+      (dinvchisq x (k pdf))))
+
+(defun invchisq-probability (x &key (df 2D0))
+  (if (< x 1E-8)
+      0D0
+      (dinvchisq x df)))
+
+(defmethod to-pmf ((pdf invchisq) &key xs (steps 101) high &allow-other-keys)
+  (let* ((pmf (make-instance 'pmf))
+         (h (or high 1))
+         (ixs (or xs (linspace 0 h steps))))
+    (loop :for x :in ixs :do (assign pmf x (p pdf x)))
+    (normalize pmf)
+    pmf))
+
+(defmethod view ((pdf invchisq) &key xs (steps 101) (xtics 10) high &allow-other-keys)
+  (view (to-pmf pdf :xs xs :steps steps :high high) :xtics xtics))
+
+(defun invchisq-pmf (&key (df 2D0) (n 101) high)
+  (to-pmf (invchisq :df df) :steps n :high high))
