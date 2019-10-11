@@ -185,8 +185,8 @@
   (declare (ignore default))
   (dbinom (k pdf) (n pdf) x))
 
-(defun binomial-probability (p &key (k 1) (n 2))
-  (dbinom (round k) (round n) p))
+(defun binomial-probability (x &key (k 1) (n 2))
+  (dbinom (round k) (round n) x))
 
 (defmethod to-pmf ((pdf binomial) &key xs (steps 101) &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
@@ -212,8 +212,8 @@
   (declare (ignore default))
   (dgamma x (k pdf) :rate (r pdf)))
 
-(defun gamma-probability (p &key (alpha 1D0) (beta 1D0))
-  (dgamma p alpha :rate beta))
+(defun gamma-probability (x &key (alpha 1D0) (beta 1D0))
+  (dgamma x alpha :rate beta))
 
 (defmethod to-pmf ((pdf gamma) &key xs (steps 101) high &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
@@ -245,10 +245,10 @@
       0D0
       (dinvgamma x (k pdf) :rate (r pdf))))
 
-(defun invgamma-probability (p &key (alpha 1D0) (beta 1D0))
+(defun invgamma-probability (x &key (alpha 1D0) (beta 1D0))
   (if (< p 1E-8)
       0D0
-      (dinvgamma p alpha :rate beta)))
+      (dinvgamma x alpha :rate beta)))
 
 (defmethod to-pmf ((pdf invgamma) &key xs (steps 101) high &allow-other-keys)
   (let* ((pmf (make-instance 'pmf))
