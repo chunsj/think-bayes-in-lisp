@@ -464,3 +464,23 @@
                     :for p2 = (cdr xp2)
                     :do (assign joint (funcall valuefn x1 x2) (* p1 p2))))
     joint))
+
+(defun binomial-probability (p &key (k 1) (n 2))
+  (dbinom (round k) (round n) p))
+
+(defun binomial-pmf (&key (n 10) (p 0.5D0))
+  (let ((pmf (make-instance 'pmf)))
+    (loop :for k :from 0 :to n :do (assign pmf k (binomial-probability p :k k :n n)))
+    (normalize pmf)
+    pmf))
+
+(defun negbinomial-probability (p &key (k 1) (n 2))
+  (if (< p 1E-8)
+      0D0
+      (dnbinom (round k) (round n) p)))
+
+(defun negbinomial-pmf (&key (n 10) (p 0.5D0))
+  (let ((pmf (make-instance 'pmf)))
+    (loop :for k :from 0 :to n :do (assign pmf k (negbinomial-probability p :k k :n n)))
+    (normalize pmf)
+    pmf))
