@@ -43,7 +43,7 @@
 (defmethod to-cdf ((beta beta) &key (steps 101) &allow-other-keys)
   (let* ((u (- steps 1D0))
          (xs (loop :for i :from 0 :below steps :collect (/ i u)))
-         (ps (loop :for x :in xs :collect (dbeta x (a beta) (b beta)))))
+         (ps (loop :for x :in xs :collect (pbeta x (a beta) (b beta)))))
     (cdf :xs xs :ps ps)))
 
 (defmethod view ((beta beta) &key (steps 101) (xtics 20))
