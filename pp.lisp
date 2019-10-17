@@ -6,4 +6,4 @@
       0))
 
 (defun histogram (xs &key (nbins 10))
-  (let ((sx (sort (copy-list xs))))))
+  (let ((sx (sort (copy-list xs) #'<)))))
