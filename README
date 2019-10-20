@@ -3,3 +3,11 @@ Following the book "Think Bayes" in common lisp. Some examples are not updated t
 ** HOW TO USE
 You need more libraries from https://bitbucket.org/chunsj/.
 Especially, mr, mu and mplot which also depends upon eazy-gnuplot.
+
+If you have installed quicklisp, then
+1. Run git clone mr, mu, mplot, from bitbucket and think-bayes from github.
+2. Links them under quicklisp/local-projects
+3. (ql:quickload :think-bayes)
+
+If thinks go well, then you can write some code using think-bayes. Refer codes under
+examples folder. There're some example codes from the book.
