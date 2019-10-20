@@ -1,1 +1,5 @@
 Following the book "Think Bayes" in common lisp. Some examples are not updated to the latest version.
+
+** HOW TO USE
+You need more libraries from https://bitbucket.org/chunsj/.
+Especially, mr, mu and mplot which also depends upon eazy-gnuplot.
