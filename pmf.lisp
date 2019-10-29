@@ -484,3 +484,17 @@
     (loop :for k :from 0 :to n :do (assign pmf k (negbinomial-probability p :k k :n n)))
     (normalize pmf)
     pmf))
+
+(defun histogram (xs &key (nbins 10))
+  (let ((xs (sort xs #'<))
+        (steps nbins))
+    (let* ((Xmin (apply #'min xs))
+           (Xmax (apply #'max xs))
+           (Xstep (/ (- Xmax Xmin) steps)))
+      (loop :for i :from 0 :below steps
+            :for minx = (+ Xmin (* i Xstep))
+            :for maxx = (+ Xmin (* (1+ i) Xstep))
+            :for nx = ($count (filter (lambda (x) (and (>= x minx)
+                                                  (< x maxx)))
+                                      xs))
+            :collect (cons minx nx)))))
