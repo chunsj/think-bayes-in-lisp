@@ -486,7 +486,7 @@
     pmf))
 
 (defun histogram (xs &key (nbins 10))
-  (let ((xs (sort xs #'<))
+  (let ((xs (sort (copy-list xs) #'<))
         (steps nbins))
     (let* ((Xmin (apply #'min xs))
            (Xmax (apply #'max xs))
